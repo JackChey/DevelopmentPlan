@@ -1,0 +1,6 @@
+@InprovePlan_HostAddress = http://localhost:5260
+
+GET {{InprovePlan_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
