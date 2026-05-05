@@ -21,9 +21,9 @@ builder.Services.AddSwaggerGen((c) =>
         Title = "Swagger Title",
         Contact = new OpenApiContact()
         {
-         Email = "123456@163.com",
-         Name = "JacyChey",
-         Url = new Uri("https://InproveProjectionDemo.com"),
+            Email = "123456@163.com",
+            Name = "JacyChey",
+            Url = new Uri("https://InproveProjectionDemo.com"),
         }
     });
 
@@ -42,11 +42,33 @@ builder.Services.AddSwaggerGen((c) =>
 
     // 继承xml注释
     string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    string xmlPath =Path.Combine(AppContext.BaseDirectory, xmlFile);
+    string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     c.IncludeXmlComments(xmlPath);
 
     // 添加JWT输入入口
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"           // 明确指定格式
+    });
 
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                 Reference = new OpenApiReference()
+                 {
+                     Type = ReferenceType.SecurityScheme,
+                     Id = "Bearer",
+                 }
+            }, new List<string>()
+        }
+    });
 });
 
 var app = builder.Build();
