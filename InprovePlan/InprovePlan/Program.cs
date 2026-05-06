@@ -1,9 +1,15 @@
+using InprovePlan;
+using InprovePlan.Exceptions;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 
 var version = Assembly.GetEntryAssembly()!.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ≈‰÷√»´æ÷“Ï≥£
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // Add services to the container.
 
@@ -69,9 +75,11 @@ builder.Services.AddSwaggerGen((c) =>
     });
 });
 
-//builder.Services.AddProblemDetails();
+builder.Services.AddAppServices();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
