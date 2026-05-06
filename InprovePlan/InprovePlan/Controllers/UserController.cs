@@ -37,26 +37,27 @@ namespace InprovePlan.Controllers
             },
         };
 
+        public record UserRequest(int userid,string password);
+
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="userid"></param>
-        /// <param name="password"></param>
+        /// <param name="userRequest"></param>
         /// <returns></returns>
-        [HttpGet()]
-        public async Task<IActionResult> Get(int userid,string password)
+        [HttpPost()]
+        public async Task<IActionResult> Get([FromBody] UserRequest userRequest)
         {
-            if (userid <= 0)
+            if (userRequest.userid <= 0)
             {
-                return ReturnResult(new Result(ResultStatus.Invalid)
-                {
-                    Errors = new List<string>() { "用户ID未传或传值失败" },
-                });
+                return ReturnResult(new Result(ResultStatus.Invalid , new List<string>() { "用户ID未传或传值失败" }));
             }
 
-            if(string.IsNullOrEmpty(password))
+            if(string.IsNullOrEmpty(userRequest.password))
             {
-                throw new ValidationException(new Dictionary<string, string[]>() { { "验证不通过", new string[] { "用户密码未传或传值失败" } } });
+                return ReturnResult(new Result(ResultStatus.Invalid, new List<string>() { "用户密码未传或传值失败" }));
+
+
+                //throw new ValidationException(new Dictionary<string, string[]>() { { "验证不通过", new string[] { "用户密码未传或传值失败" } } });
 
                 //return ReturnResult(new Result(ResultStatus.Invalid)
                 //{
@@ -64,30 +65,24 @@ namespace InprovePlan.Controllers
                 //});
             }
 
-            if (password.Equals("123456789"))
-            {
-                throw new ValidationException(new Dictionary<string, string[]>() { { "验证不通过", new string[] { "用户密码未传或传值失败" } } });
+            //if (password.Equals("123456789"))
+            //{
+            //    throw new ValidationException(new Dictionary<string, string[]>() { { "验证不通过", new string[] { "用户密码未传或传值失败" } } });
 
-                //return ReturnResult(new Result(ResultStatus.Invalid)
-                //{
-                //    Errors = new List<string>() { "用户密码未传或传值失败" },
-                //});
-            }
+            //    //return ReturnResult(new Result(ResultStatus.Invalid)
+            //    //{
+            //    //    Errors = new List<string>() { "用户密码未传或传值失败" },
+            //    //});
+            //}
 
-            var user = _users.FirstOrDefault(u=>u.UserId.Equals(userid) && u.PassWord.Equals(password));
+            var user = _users.FirstOrDefault(u=>u.UserId.Equals(userRequest.userid) && u.PassWord.Equals(userRequest.password));
 
             if (user == null)
             {
-                return ReturnResult(new Result(ResultStatus.NotFound)
-                {
-                    Errors = new List<string>() { "用户id或密码输入错误" },
-                });
+                return ReturnResult(new Result(ResultStatus.NotFound, new List<string>() { "用户id或密码输入错误" }));
             }
 
-             return ReturnResult(new Result<AppUser>(ResultStatus.Ok)
-            {
-                Value = user,
-            });
+             return ReturnResult(new Result<AppUser>(user));
         }
     }
 }

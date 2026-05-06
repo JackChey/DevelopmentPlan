@@ -6,127 +6,89 @@ using System.Threading.Tasks;
 
 namespace Instructure.IResult
 {
-    public class Result<T> : IResult
+    /// <summary>
+    /// 无返回数据响应类型
+    /// </summary>
+    public class Result : IResult
     {
-        public Result(T value)
-        {
-            Value = value;
-        }
+        public ResultStatus Status { get; }
 
-        public Result(ResultStatus status)
-        {
-            Status = status;
-        }
-
-        public T? Value { get; init; }
-
-        public ResultStatus Status { get; set; } = ResultStatus.Ok;
-
-        public IEnumerable<string>? Errors { get; set; }
+        public IReadOnlyList<string>? Errors { get; }
 
         public bool IsSuccess => Status.Equals(ResultStatus.Ok);
 
-        public object? GetValue()
-        {
-            return Value;
-        }
-
-        /// <summary>
-        /// 从带泛型结构转换为不带泛型结果
-        /// </summary>
-        /// <param name="result"></param>
-        public static implicit operator Result<T>(Result result)
-        {
-            return new Result<T>(default(T))
-            {
-                Status = result.Status,
-                Errors = result.Errors,
-            };
-        }
-    }
-
-    public class Result : Result<Result>
-    {
-        public Result(Result value) : base(value)
-        {
-            Value = value;
-        }
-
-        public Result(ResultStatus status) : base(status)
+        public Result(ResultStatus status, IReadOnlyList<string>? errors = null)
         {
             Status = status;
+            Errors = errors ?? Array.Empty<string>();
+
+            if (status == ResultStatus.Ok && Errors.Count > 0)
+                throw new InvalidOperationException("Success result cannot contain errors.");
         }
 
-        /// <summary>
-        /// 从不带泛型结果转换为带泛型结果
-        /// </summary>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        public static Result From(IResult result)
+        public static Result Seccess => new Result(ResultStatus.Ok);
+
+        internal static IReadOnlyList<string>? NormalizeErrors(IEnumerable<string> errors) => errors.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct().ToArray();
+
+        public static Result Invalid(params string[] errors) => new Result(ResultStatus.Invalid, NormalizeErrors(errors));
+        public static Result Unauthorized(params string[] errors) => new Result(ResultStatus.Unauthorized, NormalizeErrors(errors));
+
+        public static Result NotFound(params string[] errors) => new Result(ResultStatus.NotFound, NormalizeErrors(errors));
+
+        public static Result Forbidden(params string[] errors) => new Result(ResultStatus.Forbidden, NormalizeErrors(errors));
+
+        public static Result Conflict(params string[] errors) => new(ResultStatus.Conflict, NormalizeErrors(errors));
+
+        public static Result Failure(params string[] errors) => new(ResultStatus.Error, NormalizeErrors(errors));
+    }
+
+    /// <summary>
+    /// 带返回数据响应类型
+    /// </summary>
+    public class Result<T> : IResult<T>
+    {
+        public ResultStatus Status { get; }
+
+        public IReadOnlyList<string>? Errors { get; }
+
+        public bool IsSuccess => Status.Equals(ResultStatus.Ok);
+
+        public T? Value { get; }
+
+
+        public Result(T value)
         {
-            return new Result(result.Status)
-            {
-                Errors = result.Errors,
-            };
+            Value = value;
+            Status = ResultStatus.Ok;
+            Errors = Array.Empty<string>();
         }
 
-        public static Result Success()
+        public Result(ResultStatus status, IReadOnlyList<string>? errors = null)
         {
-            return new Result(ResultStatus.Ok);
+            Status = status;
+            Errors = errors ?? Array.Empty<string>();
+
+            if (status == ResultStatus.Ok && Errors.Count > 0)
+                throw new InvalidOperationException("Success result cannot contain errors.");
         }
 
-        public static Result<T> Success<T>(T value)
-        {
-            return new Result<T>(value);
-        }
+        public static Result<T> Seccess(T value) => new Result<T>(value);
 
-        public static Result Failure()
-        {
-            return new Result(ResultStatus.Error);
-        }
+        public static Result<T> Invalid(T value, params string[] errors) => new Result<T>(ResultStatus.Invalid, Result.NormalizeErrors(errors));
+        public static Result<T> Unauthorized(params string[] errors) => new Result<T>(ResultStatus.Unauthorized, Result.NormalizeErrors(errors));
 
-        public static Result Failure(IEnumerable<string>? errors)
-        {
-            return new Result(ResultStatus.Error)
-            {
-                Errors = errors
-            };
-        }
+        public static Result<T> NotFound(params string[] errors) => new Result<T>(ResultStatus.NotFound, Result.NormalizeErrors(errors));
 
-        /// <summary>
-        /// 数据未找到
-        /// </summary>
-        /// <returns></returns>
-        public static Result NotFound(params string[] error)
-        {
-            return new Result(ResultStatus.NotFound)
-            {
-                Errors = error.AsEnumerable()
-            };
-        }
+        public static Result<T> Forbidden(params string[] errors) => new Result<T>(ResultStatus.Forbidden, Result.NormalizeErrors(errors));
 
-        public static Result Forbidden()
-        {
-            return new Result(ResultStatus.Forbidden);
-        }
+        public static Result<T> Conflict(params string[] errors) => new(ResultStatus.Conflict, Result.NormalizeErrors(errors));
 
-        public static Result Unauthorized()
-        {
-            return new Result(ResultStatus.Unauthorized);
-        }
+        public static Result<T> Failure(params string[] errors) => new(ResultStatus.Error, Result.NormalizeErrors(errors));
 
-        public static Result Invalid()
-        {
-            return new Result(ResultStatus.Invalid);
-        }
-
-        public static Result Invalid(params string[] errors)
-        {
-            return new Result(ResultStatus.Invalid)
-            {
-                Errors = errors
-            };
-        }
+        public static Result<T> From(Result result) =>
+        result.Status == ResultStatus.Ok
+            ? throw new InvalidOperationException("Cannot convert successful non-generic Result to Result<T> without value.")
+            : new Result<T>(result.Status, result.Errors);
     }
 }
 

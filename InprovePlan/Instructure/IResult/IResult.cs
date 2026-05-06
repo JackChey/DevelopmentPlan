@@ -10,10 +10,13 @@ namespace Instructure.IResult
     {
         public ResultStatus Status { get;}
 
-        public object? GetValue();
-
-        public IEnumerable<string>? Errors { get; } 
+        public IReadOnlyList<string>? Errors { get; } 
 
         bool IsSuccess { get; }
+    }
+
+    public interface IResult<out T>: IResult
+    {
+       T? Value { get; }
     }
 }

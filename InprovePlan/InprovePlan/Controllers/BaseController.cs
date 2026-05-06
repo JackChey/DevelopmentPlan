@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Instructure.IResult;
+using InprovePlan.Helper;
+using Instructure.Response;
 
 namespace InprovePlan.Controllers
 {
@@ -16,34 +18,47 @@ namespace InprovePlan.Controllers
         [NonAction]
         public IActionResult ReturnResult(Instructure.IResult.IResult result)
         {
-            switch (result.Status)
-            {
-                case ResultStatus.Ok:
-                    {
-                        var value = result.GetValue();
-                        return value is null ? NoContent() : Ok(value);
-                    }
+            var traceId = HttpContext.TraceIdentifier;
 
-                case ResultStatus.Error:
-                    return result.Errors is null ? BadRequest() : BadRequest(new { errors = result.Errors, });
+            if (result.Status == ResultStatus.Ok)
+                return Ok(ApiResponse<object?>.Ok(null, traceId));
 
-                case ResultStatus.Forbidden:
-                    return StatusCode(403);
+            var statusCode = result.Status.ToHttpStatusCode();
+            var response = ApiResponse<object?>.Fail(
+                result.Status.ToErrorCode(),
+                "Request failed",
+                traceId,
+                result.Errors);
 
-                case ResultStatus.NotFound:
-                    return result.Errors is null ? NotFound() : NotFound(new { errors = result.Errors });
-
-                case ResultStatus.Unauthorized:
-                    return Unauthorized();
-
-                case ResultStatus.Invalid:
-                    return result.Errors is null ? BadRequest() : BadRequest(new { errors = result.Errors, });
-
-                default:
-                    return BadRequest();
-
-
-            }
+            return StatusCode(statusCode, response);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        [NonAction]
+        public IActionResult ReturnResult<T>(Instructure.IResult.IResult<T> result)
+        {
+            var traceId = HttpContext.TraceIdentifier;
+
+            if (result.Status == ResultStatus.Ok)
+                return Ok(ApiResponse<T?>.Ok(result.Value, traceId));
+
+            var statusCode = result.Status.ToHttpStatusCode();
+            var response = ApiResponse<T?>.Fail(
+                result.Status.ToErrorCode(),
+                "Request failed",
+                traceId,
+                result.Errors);
+
+            return StatusCode(statusCode, response);
+        }
+
+        
     }
+
+    
 }

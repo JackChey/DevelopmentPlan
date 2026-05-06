@@ -4,6 +4,9 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using Instructure.IResult;
+using Microsoft.OpenApi.Models;
+using Instructure.Response;
+using InprovePlan.Helper;
 
 namespace InprovePlan.Exceptions
 {
@@ -37,42 +40,23 @@ namespace InprovePlan.Exceptions
         async ValueTask<bool> IExceptionHandler.TryHandleAsync(HttpContext httpContext, System.Exception exception, CancellationToken cancellationToken)
         {
             // 获取异常信息
-            var (status, title, type, errorCode) = Map(exception);
+            var (resultstatus, errorcode, message, details) = Map(exception, _env.IsDevelopment());
+            var traceId = Activity.Current?.Id ?? httpContext.TraceIdentifier;
+            var statusCode = resultstatus.ToHttpStatusCode();
 
             // 若异常状态大于等于 500 ,则代表重大异常,需要进行记录,
-            if (status >= 500)
+            if (statusCode >= 500)
             {
-                _logger.LogError(exception, "Unhandled exception.TraceId={TraceId}",Activity.Current?.Id ?? httpContext.TraceIdentifier);
+                _logger.LogError(exception, "Unhandled exception.TraceId={TraceId}", Activity.Current?.Id ?? httpContext.TraceIdentifier);
             }
             else
             {
                 _logger.LogWarning(exception, "Handled bussiness exception.TraceId={TraceId}", Activity.Current?.Id ?? httpContext.TraceIdentifier);
             }
 
-            var problem = new ProblemDetails()
-            {
-                Status = status,
-                Title = title,
-                Type = type,
-                Detail = status >= 500 ? "An unexpected error occured.":exception.Message,
-                Instance = httpContext.Request.Path,
-            };
+            var response = ApiResponse<object?>.Fail(errorcode, message, traceId, details);
 
-            problem.Extensions["traceId"] = Activity.Current?.Id ?? httpContext.TraceIdentifier;
-            problem.Extensions["errorCode"] = errorCode;
-
-            if (exception is ValidationException vex)
-            {
-                problem.Extensions["errors"] = vex.Errors;
-            }
-
-            httpContext.Response.StatusCode = status;
-            await httpContext.Response.WriteAsJsonAsync( Result.From(new Result(ResultStatus.Ok )
-            {
-
-            })
-            ,cancellationToken);
-            await httpContext.Response.WriteAsJsonAsync(problem,cancellationToken);
+            await httpContext.Response.WriteAsJsonAsync(response, cancellationToken);
 
             return true;
         }
@@ -81,16 +65,66 @@ namespace InprovePlan.Exceptions
         /// <summary>
         /// 拆分异常信息标准化
         /// </summary>
-        /// <param name="exception"></param>
+        /// <param name="ex"></param>
+        /// <param name="isDevelopment"></param>
         /// <returns></returns>
-        private static (int status,string title,string type,string errorCode) Map(System.Exception exception) => exception switch
+        private static (ResultStatus status, string errorCode, string message, IEnumerable<string>? details) Map(Exception ex, bool isDevelopment) => ex switch
         {
-            ValidationException vex => (StatusCodes.Status400BadRequest,"Validation Failed", "https://httpstatuses.com/400", vex.ErrorCode),
-            BusinessException bex => (StatusCodes.Status409Conflict,"Bussiness Rule Violation", "https://httpstatuses.com/409", bex.ErrorCode),
-            NotFoundException nex => (StatusCodes.Status404NotFound,"Not Found", "https://httpstatuses.com/404", nex.ErrorCode),
-            UnauthorizedAccessException =>(StatusCodes.Status403Forbidden,"Forbidden", "https://httpstatuses.com/403", "forbidden"),
-            OperationCanceledException => (499,"Client Closed Request","about:blank","client_close_request"),
-            _ => (StatusCodes.Status500InternalServerError,"Interal Server Error", "https://httpstatuses.com/500", "interal_error"),
+            ValidationException vex => (
+                ResultStatus.Invalid,
+                vex.ErrorCode,
+                vex.Message,
+                FlattenValidationErrors(vex.Errors)
+            ),
+
+            NotFoundException nex => (
+                ResultStatus.NotFound,
+                nex.ErrorCode,
+                nex.Message,
+                null
+            ),
+
+            BusinessException bex => (
+                ResultStatus.Conflict,
+                bex.ErrorCode,
+                bex.Message,
+                null
+            ),
+
+            UnauthorizedAccessException => (
+                ResultStatus.Forbidden,
+                "forbidden",
+                "Forbidden",
+                null
+            ),
+
+            OperationCanceledException => (
+                ResultStatus.Error,
+                "client_closed_request",
+                "Client closed request",
+                null
+            ),
+
+            _ => (
+                ResultStatus.Error,
+                "internal_error",
+                isDevelopment ? ex.Message : "An unexpected error occurred.",
+                null
+            )
         };
+
+        private static IEnumerable<string> FlattenValidationErrors(IDictionary<string, string[]> errors)
+        {
+            foreach (var (key, values) in errors)
+            {
+                if (values == null || values.Length == 0) continue;
+
+                foreach (var value in values)
+                    yield return string.IsNullOrWhiteSpace(key) ? value : $"{key}: {value}";
+            }
+        }
+
     }
+
+
 }

@@ -8,11 +8,12 @@ namespace Instructure.IResult
 {
     public enum ResultStatus
     {
-        Ok = 200,
+        Ok,
         Error,
         Forbidden,
-        Unauthorized = 403,
+        Unauthorized,
         NotFound,
+        Conflict,
         Invalid,
     }
 }
