@@ -7,6 +7,9 @@ var version = Assembly.GetEntryAssembly()!.GetCustomAttribute<AssemblyFileVersio
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddAppServices(builder.Configuration);
+
+
 // 配置全局异常
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -18,8 +21,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // 添加鉴权
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
+//builder.Services.AddAuthentication();
+//builder.Services.AddAuthorization();
 
 // 配置Swagger
 builder.Services.AddSwaggerGen((c) =>
@@ -75,7 +78,6 @@ builder.Services.AddSwaggerGen((c) =>
     });
 });
 
-builder.Services.AddAppServices();
 
 var app = builder.Build();
 

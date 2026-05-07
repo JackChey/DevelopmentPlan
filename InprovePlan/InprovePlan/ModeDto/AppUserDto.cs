@@ -29,5 +29,10 @@
         /// 居住地址
         /// </summary>
         public string? Address { get; set; }
+
+        /// <summary>
+        /// 权限
+        /// </summary>
+        public string? Root { get; set; }
     }
 }

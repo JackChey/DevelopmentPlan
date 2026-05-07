@@ -1,4 +1,7 @@
-﻿using InprovePlan.Exceptions;
+﻿using AutoMapper;
+using InprovePlan.Exceptions;
+using InprovePlan.FakeData;
+using InprovePlan.ModeDto;
 using InprovePlan.Model;
 using Instructure.IResult;
 using Microsoft.AspNetCore.Mvc;
@@ -10,34 +13,11 @@ namespace InprovePlan.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController: BaseController
+    public class UserController(IMapper mapper) : BaseController
     {
-        private List<AppUser> _users = new()
-        {
-            new AppUser()
-            {
-                UserId = 100001,
-                UserName = "Jack",
-                PassWord = "123456",
-                Address = "China",
-            },
-            new AppUser()
-            {
-                UserId = 100002,
-                UserName = "Json",
-                PassWord = "123456",
-                Address = "Singaple",
-            },
-            new AppUser()
-            {
-                UserId = 100003,
-                UserName = "Mary",
-                PassWord = "123456",
-                Address = "Jepan",
-            },
-        };
 
-        public record UserRequest(int userid,string password);
+
+        public record UserRequest(int userid, string password);
 
         /// <summary>
         /// 
@@ -49,10 +29,10 @@ namespace InprovePlan.Controllers
         {
             if (userRequest.userid <= 0)
             {
-                return ReturnResult(new Result(ResultStatus.Invalid , new List<string>() { "用户ID未传或传值失败" }));
+                return ReturnResult(new Result(ResultStatus.Invalid, new List<string>() { "用户ID未传或传值失败" }));
             }
 
-            if(string.IsNullOrEmpty(userRequest.password))
+            if (string.IsNullOrEmpty(userRequest.password))
             {
                 return ReturnResult(new Result(ResultStatus.Invalid, new List<string>() { "用户密码未传或传值失败" }));
 
@@ -75,14 +55,14 @@ namespace InprovePlan.Controllers
             //    //});
             //}
 
-            var user = _users.FirstOrDefault(u=>u.UserId.Equals(userRequest.userid) && u.PassWord.Equals(userRequest.password));
+            var user = Users._users.FirstOrDefault(u => u.UserId.Equals(userRequest.userid) && u.PassWord.Equals(userRequest.password));
 
             if (user == null)
             {
                 return ReturnResult(new Result(ResultStatus.NotFound, new List<string>() { "用户id或密码输入错误" }));
             }
 
-             return ReturnResult(new Result<AppUser>(user));
+            return ReturnResult(new Result<AppUserDto>(mapper.Map<AppUserDto>(user)));
         }
     }
 }
