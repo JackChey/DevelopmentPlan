@@ -74,7 +74,7 @@ namespace Instructure.IResult
 
         public static Result<T> Seccess(T value) => new Result<T>(value);
 
-        public static Result<T> Invalid(T value, params string[] errors) => new Result<T>(ResultStatus.Invalid, Result.NormalizeErrors(errors));
+        public static Result<T> Invalid(params string[] errors) => new Result<T>(ResultStatus.Invalid, Result.NormalizeErrors(errors));
         public static Result<T> Unauthorized(params string[] errors) => new Result<T>(ResultStatus.Unauthorized, Result.NormalizeErrors(errors));
 
         public static Result<T> NotFound(params string[] errors) => new Result<T>(ResultStatus.NotFound, Result.NormalizeErrors(errors));

@@ -1,33 +1,28 @@
 ﻿using AutoMapper;
-using InprovePlan.Exceptions;
 using InprovePlan.FakeData;
+using InprovePlan.IService.Jwt;
 using InprovePlan.ModeDto;
-using InprovePlan.Model;
+using InprovePlan.Service.Jwt;
 using Instructure.IResult;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static InprovePlan.Controllers.UserController;
 
 namespace InprovePlan.Controllers
 {
     /// <summary>
-    /// 用户业务接口
+    /// 
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController(IMapper mapper) : BaseController
+    public class IdentityController(IJwtService jwtService) : BaseController
     {
-
-
-        public record UserRequest(int userid, string password);
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="userRequest"></param>
         /// <returns></returns>
         [HttpPost()]
-        [Authorize()]
-        public async Task<IActionResult> Get([FromBody] UserRequest userRequest)
+        public async Task<IActionResult> Login([FromBody] UserRequest userRequest)
         {
             if (userRequest.userid <= 0)
             {
@@ -57,14 +52,14 @@ namespace InprovePlan.Controllers
             //    //});
             //}
 
-            var user = Users._users.FirstOrDefault(u => u.UserId.Equals(userRequest.userid) && u.PassWord.Equals(userRequest.password));
+            var token = await jwtService.GetAccessTokenAsync(userRequest.userid, userRequest.password);
 
-            if (user == null)
+            if (token is null)
             {
-                return ReturnResult(new Result(ResultStatus.NotFound, new List<string>() { "用户id或密码输入错误" }));
+                return ReturnResult(Result.Failure(new string[] { "获取Token失败"}));
             }
 
-            return ReturnResult(new Result<AppUserDto>(mapper.Map<AppUserDto>(user)));
+            return ReturnResult(token);
         }
     }
 }

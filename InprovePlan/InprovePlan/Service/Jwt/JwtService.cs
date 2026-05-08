@@ -30,7 +30,7 @@ namespace InprovePlan.Service.Jwt
 
             if (appuser is null)
             {
-                return Result<string>.Unauthorized();
+                return Result<string>.Unauthorized(new string[] {"用户名或密码输入错误"});
             }
 
             // 生成token

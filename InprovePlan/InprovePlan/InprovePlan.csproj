@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="acpjczzb.kle~" />
     <None Remove="Service\Jwt\4guerahx.325~" />
   </ItemGroup>
 

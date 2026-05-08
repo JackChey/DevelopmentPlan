@@ -1,4 +1,6 @@
-﻿using InprovePlan.Service.Jwt;
+﻿using InprovePlan.Connections;
+using InprovePlan.IService.Jwt;
+using InprovePlan.Service.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -16,9 +18,12 @@ namespace InprovePlan
         /// 
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
         {
+            ConfigEnvironment(services, configuration);
+
             // 注册 AutoMapper
             services.AddAutoMapper(cfg =>
             {
@@ -30,6 +35,13 @@ namespace InprovePlan
             return services;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
         public static IServiceCollection AddInfranstructureServices(this IServiceCollection services,IConfiguration configuration)
         {
             // 获取 Jwt设置
@@ -44,11 +56,19 @@ namespace InprovePlan
             // 注入jwtsetting
             services.Configure<JwtSettings>(configurationSection);
 
+            services.AddTransient<IJwtService,JwtService>();
+
             ConfigureAuthentication(services, jwtsettings);
 
             return services;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="jwtSettings"></param>
+        /// <returns></returns>
         public static IServiceCollection ConfigureAuthentication(this IServiceCollection services, JwtSettings jwtSettings)
         {
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
@@ -71,5 +91,38 @@ namespace InprovePlan
 
             return services;
         }
+
+        /// <summary>
+        /// 根据不同的配置环境读取配置文件
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IServiceCollection ConfigEnvironment(this IServiceCollection services, IConfiguration configuration)
+        {
+            // 获取当前配置环境
+            var currentEnv = configuration.GetSection("Run_Environment").Get<string>();
+
+            // 根据环境读取不同的配置文件
+            var settingPath = Path.Combine(AppContext.BaseDirectory, $"appsettings_{currentEnv}.json");
+
+            if (!File.Exists(settingPath))
+            {
+                throw new NullReferenceException($"当前环境:{currentEnv} 对应配置文件不存在");
+            }
+
+            var envSetting = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory).AddJsonFile(settingPath).Build();
+
+            var dbConnectionStr = envSetting.GetSection("ConnectionStrings:DBConnection");
+            var rediaConnectionStr = envSetting.GetSection("ConnectionStrings:RedisConnection");
+            var rabbitMqConnectionStr = envSetting.GetSection("ConnectionStrings:RabbitMqConnection");
+
+            services.Configure<DBConnection>(dbConnectionStr);
+            services.Configure<RedisConnection>(rediaConnectionStr);
+            services.Configure<RabbitMqConnection>(rabbitMqConnectionStr);
+
+            return services;
+        }
+
     }
 }

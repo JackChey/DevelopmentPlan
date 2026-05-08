@@ -56,6 +56,8 @@ namespace InprovePlan.Exceptions
 
             var response = ApiResponse<object?>.Fail(errorcode, message, traceId, details);
 
+            httpContext.Response.StatusCode = statusCode;
+
             await httpContext.Response.WriteAsJsonAsync(response, cancellationToken);
 
             return true;
