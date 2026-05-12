@@ -4,6 +4,7 @@ using InprovePlan.Service.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.Reflection;
 using System.Text;
 
@@ -31,6 +32,8 @@ namespace InprovePlan
             },Assembly.GetExecutingAssembly());
 
             AddInfranstructureServices(services, configuration);
+
+
 
             return services;
         }
@@ -123,6 +126,35 @@ namespace InprovePlan
 
             return services;
         }
+
+        /// <summary>
+        /// 添加 Serilog 配置
+        /// </summary>
+        /// <param name="builder"></param>
+        public static WebApplicationBuilder AddSerilogConfiguration(this WebApplicationBuilder builder )
+        {
+            // 从配置文件中获取 Serilog 配置信息
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(
+                new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.jason", optional: true)
+                .AddEnvironmentVariables()
+                .Build())
+                .CreateLogger()
+                ;
+
+            builder.Host.UseSerilog((context, service, logconfig) =>
+            {
+                logconfig.ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(service)
+                .Enrich.FromLogContext();
+            });
+
+
+            return builder;
+        }
+
 
     }
 }

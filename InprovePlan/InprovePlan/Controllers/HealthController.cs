@@ -41,6 +41,8 @@ namespace InprovePlan.Controllers
         [HttpGet("ready")]
         public IActionResult ready()
         {
+            // 这里的检查只是演示代码,后续会补齐真实的验证逻辑
+
             // 检查DataBase
             if (string.IsNullOrEmpty(dbconection?.Value.server))
             {

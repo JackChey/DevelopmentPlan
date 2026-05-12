@@ -14,7 +14,7 @@ namespace InprovePlan.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController(IMapper mapper) : BaseController
+    public class UserController(IMapper mapper,ILogger<UserController> logger) : BaseController
     {
 
 
@@ -26,8 +26,7 @@ namespace InprovePlan.Controllers
         /// <param name="userRequest"></param>
         /// <returns></returns>
         [HttpPost()]
-        [Authorize()]
-        public async Task<IActionResult> Get([FromBody] UserRequest userRequest)
+        public IActionResult Get([FromBody] UserRequest userRequest)
         {
             if (userRequest.userid <= 0)
             {
@@ -65,6 +64,46 @@ namespace InprovePlan.Controllers
             }
 
             return ReturnResult(new Result<AppUserDto>(mapper.Map<AppUserDto>(user)));
+        }
+
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        [HttpGet()]
+        [Authorize()]
+        public IActionResult Update(int userId,string userName)
+        {
+            if (userId <= 0)
+            {
+                return ReturnResult(new Result(ResultStatus.Invalid, new List<string>() { "用户ID未传或传值失败" }));
+            }
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                return ReturnResult(new Result(ResultStatus.Invalid, new List<string>() { "用户名未传或传值失败" }));
+            }
+
+            if (userName.Equals("Nick"))
+            {
+                return ReturnResult(Result.Invalid("用户名非法"));
+            }
+
+            var user = Users._users.FirstOrDefault(u => u.UserId.Equals(userId));
+
+            if (user == null)
+            {
+                logger.LogWarning(string.Format("Update user:{userid}-userName faild"), userId);
+
+                return ReturnResult(new Result(ResultStatus.NotFound, new List<string>() { "用户id输入错误" }));
+            }
+
+            user.UserName = userName;
+
+            return ReturnResult(Result.Seccess);
         }
     }
 }

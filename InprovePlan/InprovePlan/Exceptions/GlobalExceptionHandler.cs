@@ -7,6 +7,8 @@ using Instructure.IResult;
 using Microsoft.OpenApi.Models;
 using Instructure.Response;
 using InprovePlan.Helper;
+using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace InprovePlan.Exceptions
 {
@@ -48,6 +50,9 @@ namespace InprovePlan.Exceptions
             if (statusCode >= 500)
             {
                 _logger.LogError(exception, "Unhandled exception.TraceId={TraceId}", Activity.Current?.Id ?? httpContext.TraceIdentifier);
+
+                //_logger.LogError(exception, message);
+
             }
             else
             {
