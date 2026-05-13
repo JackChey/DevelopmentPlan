@@ -138,7 +138,7 @@ namespace InprovePlan
                 .ReadFrom.Configuration(
                 new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.jason", optional: true)
+                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build())
                 .CreateLogger()

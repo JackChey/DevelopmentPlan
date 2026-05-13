@@ -19,9 +19,6 @@ namespace InprovePlan.Controllers
     [Route("api/[controller]")]
     public class HealthController(IOptions<DBConnection>? dbconection, IOptions<RabbitMqConnection>? mqconection, IOptions<RedisConnection>? redisconection) : BaseController
     {
-
-
-
         /// <summary>
         /// 服务存活检查
         /// </summary>

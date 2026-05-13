@@ -118,7 +118,7 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex,"Application start-up failed");
+    throw new InvalidOperationException( "Application start-up failed", ex);
 }
 finally
 {
