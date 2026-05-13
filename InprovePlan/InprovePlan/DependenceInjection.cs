@@ -1,7 +1,9 @@
 ﻿using InprovePlan.Connections;
 using InprovePlan.IService.Jwt;
 using InprovePlan.Service.Jwt;
+using Instructure.Response;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -29,7 +31,7 @@ namespace InprovePlan
             services.AddAutoMapper(cfg =>
             {
                 cfg.AddMaps(Assembly.GetExecutingAssembly());
-            },Assembly.GetExecutingAssembly());
+            }, Assembly.GetExecutingAssembly());
 
             AddInfranstructureServices(services, configuration);
 
@@ -45,13 +47,13 @@ namespace InprovePlan
         /// <param name="configuration"></param>
         /// <returns></returns>
         /// <exception cref="NullReferenceException"></exception>
-        public static IServiceCollection AddInfranstructureServices(this IServiceCollection services,IConfiguration configuration)
+        public static IServiceCollection AddInfranstructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             // 获取 Jwt设置
             var configurationSection = configuration.GetSection("JwtSettings");
             var jwtsettings = configurationSection.Get<JwtSettings>();
 
-            if (jwtsettings is null )
+            if (jwtsettings is null)
             {
                 throw new NullReferenceException(nameof(JwtSettings));
             }
@@ -59,7 +61,7 @@ namespace InprovePlan
             // 注入jwtsetting
             services.Configure<JwtSettings>(configurationSection);
 
-            services.AddTransient<IJwtService,JwtService>();
+            services.AddTransient<IJwtService, JwtService>();
 
             ConfigureAuthentication(services, jwtsettings);
 
@@ -89,6 +91,40 @@ namespace InprovePlan
                     ValidIssuer = jwtSettings.Issuer,
                     ValidAudience = jwtSettings.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
+                };
+
+                option.Events = new JwtBearerEvents()
+                {
+                    // 处理身份检验失败
+                    OnChallenge = async context =>
+                    {
+                        // 阻止 401 纯文本响应
+                        context.HandleResponse();
+
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json; charset=utf-8";
+
+                        var body = ApiResponse<object?>.Fail(
+                            "unauthorized",
+                            "Unauthorized",
+                            context.HttpContext.TraceIdentifier);
+
+                        await context.Response.WriteAsJsonAsync(body);
+                    },
+
+                    // 处理未授权
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json; charset=utf-8";
+
+                        var body = ApiResponse<object?>.Fail(
+                            "forbidden",
+                            "Forbidden",
+                            context.HttpContext.TraceIdentifier);
+
+                        await context.Response.WriteAsJsonAsync(body);
+                    },
                 };
             });
 
@@ -131,7 +167,7 @@ namespace InprovePlan
         /// 添加 Serilog 配置
         /// </summary>
         /// <param name="builder"></param>
-        public static WebApplicationBuilder AddSerilogConfiguration(this WebApplicationBuilder builder )
+        public static WebApplicationBuilder AddSerilogConfiguration(this WebApplicationBuilder builder)
         {
             // 从配置文件中获取 Serilog 配置信息
             Log.Logger = new LoggerConfiguration()

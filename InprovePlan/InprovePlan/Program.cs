@@ -1,5 +1,6 @@
 using InprovePlan;
 using InprovePlan.Exceptions;
+using InprovePlan.Filters;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
@@ -81,6 +82,9 @@ try
             }, new List<string>()
         }
     });
+
+        // 配置鉴权异常处理
+        c.OperationFilter<AuthResponseOperationFilter>();
     });
 
 
@@ -118,6 +122,8 @@ try
 }
 catch (Exception ex)
 {
+    Log.Fatal(ex, "Application start-up failed");
+
     throw new InvalidOperationException( "Application start-up failed", ex);
 }
 finally
