@@ -23,12 +23,12 @@
         /// <summary>
         /// 请求业务关键信息
         /// </summary>
-        public LogBusinessContext? Biz { get; set; } = null!;
+        public LogBusinessContext? Biz { get; set; } 
 
         /// <summary>
         /// 错误信息
         /// </summary>
-        public string? Error { get; set; }  = null;
+        public string? Error { get; set; }  
 
         /// <summary>
         /// 日志标签

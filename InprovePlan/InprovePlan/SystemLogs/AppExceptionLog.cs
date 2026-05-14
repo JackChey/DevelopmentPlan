@@ -24,7 +24,7 @@
         /// <summary>
         /// 日志标签
         /// </summary>
-        public string[]? Tags { get; set; } = null;
+        public string[]? Tags { get; set; } 
 
     }
 }
