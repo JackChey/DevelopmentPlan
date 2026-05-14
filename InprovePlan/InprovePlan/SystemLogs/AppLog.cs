@@ -8,7 +8,7 @@
         /// <summary>
         /// 日志产生时间（UTC，ISO8601），用于时序分析与对齐多系统时间线
         /// </summary>
-        public TimeSpan OccurrenceTime { get; set; }
+        public DateTimeOffset OccurrenceTime { get; set; }
 
         /// <summary>
         /// 日志级别（Trace/Debug/Information/Warning/Error/Fatal），用于过滤和告警分层

@@ -19,10 +19,6 @@
         /// 角色
         /// </summary>
         public string[] Role { get; set; } = null!;
-
-        /// <summary>
-        /// 响应状态
-        /// </summary>
-        public int StatusCode { get; set; } 
+       
     }
 }

@@ -3,7 +3,7 @@
     /// <summary>
     /// 异常日志
     /// </summary>
-    public class AppExceptiontLog: AppLog
+    public class AppExceptionLog: AppLog
     {
 
         /// <summary>

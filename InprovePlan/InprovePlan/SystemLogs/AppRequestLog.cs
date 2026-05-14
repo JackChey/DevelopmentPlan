@@ -18,7 +18,7 @@
         /// <summary>
         /// 请求用户信息
         /// </summary>
-        public LogAuthorizationInfo? Auth { get; set; } = null!;
+        public LogAuthorizationInfo? Auth { get; set; } 
 
         /// <summary>
         /// 请求业务关键信息
