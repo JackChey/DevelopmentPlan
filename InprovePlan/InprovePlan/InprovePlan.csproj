@@ -30,8 +30,4 @@
     <ProjectReference Include="..\Instructure\Instructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="SystemLog\" />
-  </ItemGroup>
-
 </Project>
