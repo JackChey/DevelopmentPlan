@@ -1,6 +1,8 @@
 using InprovePlan;
 using InprovePlan.Exceptions;
 using InprovePlan.Filters;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
@@ -17,6 +19,21 @@ try
     // 配置全局异常
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+    // 配置转发头
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+        // 重要：必须指定可信的代理服务器 IP 或网段，否则出于安全考虑，框架会忽略转发头
+        // 如果是 Docker/K8s 内部通信，可能需要添加网关 IP
+        // options.KnownProxies.Add(IPAddress.Parse("10.0.0.1")); 
+        // options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("10.0.0.0"), 24));
+
+        // 开发环境下为了方便，有时会清空限制（生产环境严禁这样做，除非你确定上游完全可信）
+        // options.KnownNetworks.Clear();
+        // options.KnownProxies.Clear();
+    });
 
     builder.AddSerilogConfiguration();
 
@@ -90,6 +107,9 @@ try
 
     var app = builder.Build();
 
+    // 必须在其他中间件之前使用
+    app.UseForwardedHeaders();
+
     // 配置请求日志
     app.UseSerilogRequestLogging(options =>
     {
@@ -124,7 +144,7 @@ catch (Exception ex)
 {
     Log.Fatal(ex, "Application start-up failed");
 
-    throw new InvalidOperationException( "Application start-up failed", ex);
+    throw new InvalidOperationException("Application start-up failed", ex);
 }
 finally
 {

@@ -49,9 +49,8 @@ namespace InprovePlan.Exceptions
             // 若异常状态大于等于 500 ,则代表重大异常,需要进行记录,
             if (statusCode >= 500)
             {
+                Log.ForContext("event", "http.request.failed");
                 _logger.LogError(exception, "Unhandled exception.TraceId={TraceId}", Activity.Current?.Id ?? httpContext.TraceIdentifier);
-
-                //_logger.LogError(exception, message);
 
             }
             else
