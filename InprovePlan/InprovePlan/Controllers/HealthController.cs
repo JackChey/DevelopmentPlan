@@ -24,6 +24,7 @@ namespace InprovePlan.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("live")]
+        [AllowAnonymous]
         public IActionResult live()
         {
             return ReturnResult(Result.Seccess);
@@ -36,6 +37,7 @@ namespace InprovePlan.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("ready")]
+        [AllowAnonymous]
         public IActionResult ready()
         {
             // 这里的检查只是演示代码,后续会补齐真实的验证逻辑

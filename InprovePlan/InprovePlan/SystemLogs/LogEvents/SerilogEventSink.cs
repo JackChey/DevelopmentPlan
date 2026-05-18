@@ -4,6 +4,11 @@ using System.Diagnostics;
 using System;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using System.IO;
+using System.Text;
+using InprovePlan.Exceptions;
 
 namespace InprovePlan.SystemLogs.LogEvents
 {
@@ -12,6 +17,11 @@ namespace InprovePlan.SystemLogs.LogEvents
     /// </summary>
     public class SerilogEventSink() : ILogEventSink
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        public static readonly object _lock = new object();
+
         /// <summary>
         /// 处理逻辑
         /// </summary>
@@ -40,7 +50,7 @@ namespace InprovePlan.SystemLogs.LogEvents
             {
                 method = sv.Properties.FirstOrDefault(p => p.Name == "Method")?.Value.ToString();
                 route = sv.Properties.FirstOrDefault(p => p.Name == "Route")?.Value.ToString();
-                statuscode = string.IsNullOrEmpty(sv.Properties.FirstOrDefault(p => p.Name == "StatusCode")?.Value.ToString()) ? 0 :  int.Parse(sv.Properties.FirstOrDefault(p => p.Name == "StatusCode")!.Value!.ToString());
+                statuscode = string.IsNullOrEmpty(sv.Properties.FirstOrDefault(p => p.Name == "StatusCode")?.Value.ToString()) ? 0 : int.Parse(sv.Properties.FirstOrDefault(p => p.Name == "StatusCode")!.Value!.ToString());
                 clientip = sv.Properties.FirstOrDefault(p => p.Name == "ClientIp")?.Value.ToString();
 
             }
@@ -72,10 +82,13 @@ namespace InprovePlan.SystemLogs.LogEvents
                     Event = logevent?.ToString() ?? "No Event",
                     Http = logHttp,
                 };
+
+                // 将日志信息序列号存储
+                WriteJsonFile(expLog);
             }
             else
             {
-                var expLog = new AppLog()
+                var applog = new AppLog()
                 {
                     OccurrenceTime = occurrenceTime,
                     Level = level,
@@ -87,9 +100,43 @@ namespace InprovePlan.SystemLogs.LogEvents
                     TraceId = traceId,
                     SpanId = spanId,
                 };
+
+                // 将日志信息序列号存储
+                WriteJsonFile(applog);
             }
 
-            // 将日志信息序列号存储
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void WriteJsonFile(AppExceptionLog appException)
+        {
+            var line = JsonSerializer.Serialize(appException);
+
+            var filePath = Path.Combine(AppContext.BaseDirectory, "AppLog.ndjson");
+
+            lock (_lock)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+                File.AppendAllText(filePath, line + Environment.NewLine, Encoding.UTF8);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void WriteJsonFile(AppLog appLog)
+        {
+            var line = JsonSerializer.Serialize(appLog);
+
+            var filePath = Path.Combine(AppContext.BaseDirectory + "/Logs", "AppLogs.ndjson");
+
+            lock (_lock)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+                File.AppendAllText(filePath, line + Environment.NewLine, Encoding.UTF8);
+            }
         }
     }
 }

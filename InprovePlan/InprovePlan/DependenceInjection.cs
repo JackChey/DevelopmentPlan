@@ -5,14 +5,9 @@ using InprovePlan.Service.Jwt;
 using InprovePlan.SystemLogs.LogEvents;
 using Instructure.Response;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Core;
-using Serilog.Events;
-using System;
 using System.Reflection;
 using System.Text;
 
@@ -196,9 +191,9 @@ namespace InprovePlan
             // 获取实例标识
             var instance = Environment.GetEnvironmentVariable("POD_NAME") ?? Environment.GetEnvironmentVariable("HOSTNAME") ?? $"{Environment.MachineName}-{Environment.ProcessId}";
 
-            var service = Assembly.GetExecutingAssembly().GetName().Name ?? "No Service";
+            var appservice = Assembly.GetExecutingAssembly().GetName().Name ?? "No Service";
             var version = Assembly.GetEntryAssembly()!.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version;
-            var env = builder.Environment.ApplicationName;
+            var env = builder.Environment.EnvironmentName;
 
             builder.Host.UseSerilog((context, service, logconfig) =>
             {
@@ -208,7 +203,7 @@ namespace InprovePlan
                 .ReadFrom.Services(service)
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("instance", instance)
-                .Enrich.WithProperty("service", service)
+                .Enrich.WithProperty("service", appservice)
                 .Enrich.WithProperty("version", version)
                 .Enrich.WithProperty("env", env)
                 .WriteTo.Sink(sink)
