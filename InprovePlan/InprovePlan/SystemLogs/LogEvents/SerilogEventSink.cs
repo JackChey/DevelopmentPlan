@@ -1,20 +1,13 @@
 ﻿using Serilog.Core;
 using Serilog.Events;
-using System.Diagnostics;
-using System;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-using System.IO;
+using System.Security.Claims;
 using System.Text;
-using InprovePlan.Exceptions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text.Json;
 
 namespace InprovePlan.SystemLogs.LogEvents
 {
     /// <summary>
-    /// 处理日志,日志往哪里写、怎么写
+    /// 处理日志,日志往哪里写、怎么写(注意:这是之前的写法,现在已弃用,使用:LevelSeparatingSink
     /// </summary>
     public class SerilogEventSink(IHttpContextAccessor httpContextAccessor) : ILogEventSink
     {
@@ -70,8 +63,8 @@ namespace InprovePlan.SystemLogs.LogEvents
             var traceId = logEvent.TraceId;
             var spanId = logEvent.SpanId;
 
-            var userId = context.User.Claims.FirstOrDefault(x => x.Equals("NameIdentifier"))?.Value ?? "";
-            var role = context.User.Claims.Where(x => x.Equals("role")).Select(x => x.Value.ToString()).ToArray();
+            var userId = context?.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var role = context?.User.FindAll(ClaimTypes.Role).Select(x=>x.Value.ToString()).ToArray();
 
             var auth = new LogAuthorizationInfo()
             {
@@ -139,7 +132,7 @@ namespace InprovePlan.SystemLogs.LogEvents
         {
             var line = JsonSerializer.Serialize(appException);
 
-            var filePath = Path.Combine(AppContext.BaseDirectory + "/Logs", "AppLogs.ndjson");
+            var filePath = Path.Combine(AppContext.BaseDirectory + "/Logs", "AppExpLogs.ndjson");
 
             lock (_lock)
             {

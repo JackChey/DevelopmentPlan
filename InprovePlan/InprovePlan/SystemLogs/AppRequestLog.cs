@@ -13,7 +13,7 @@
         /// <summary>
         /// 请求方法信息
         /// </summary>
-        public LogHttpRequestInfo Http { get; set; } = null!;
+        public LogHttpRequestInfo? Http { get; set; } = null!;
 
         /// <summary>
         /// 请求用户信息

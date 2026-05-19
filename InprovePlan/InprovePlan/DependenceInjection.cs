@@ -7,7 +7,6 @@ using Instructure.Response;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using Serilog.Core;
 using System.Reflection;
 using System.Text;
 
@@ -186,10 +185,9 @@ namespace InprovePlan
                 .CreateLogger()
                 ;
 
-
             builder.Services.AddHttpContextAccessor();
 
-            builder.Services.AddTransient<ILogEventSink, SerilogEventSink>();
+            //builder.Services.AddTransient<ILogEventSink, SerilogEventSink>();
 
             // 获取实例标识
             var instance = Environment.GetEnvironmentVariable("POD_NAME") ?? Environment.GetEnvironmentVariable("HOSTNAME") ?? $"{Environment.MachineName}-{Environment.ProcessId}";
@@ -200,7 +198,7 @@ namespace InprovePlan
 
             builder.Host.UseSerilog((context, service, logconfig) =>
             {
-                var sink = service.GetRequiredService<ILogEventSink>();
+                //var sink = service.GetRequiredService<ILogEventSink>();
 
                 logconfig.ReadFrom.Configuration(context.Configuration)
                 .ReadFrom.Services(service)
@@ -209,7 +207,10 @@ namespace InprovePlan
                 .Enrich.WithProperty("service", appservice)
                 .Enrich.WithProperty("version", version)
                 .Enrich.WithProperty("env", env)
-                .WriteTo.Sink(sink)
+                .WriteTo.Sink(new LevelSeparatingSink(
+                    highLevelPath: "Logs/AppExpLogs-.ndjson",
+                    lowLevelPath: "Logs/AppLogs-.ndjson"))
+                //.WriteTo.Sink(sink)
                 ;
             });
 

@@ -14,12 +14,12 @@
         /// <summary>
         /// 请求方法信息
         /// </summary>
-        public LogHttpRequestInfo Http { get; set; } = null!;
+        public LogHttpRequestInfo? Http { get; set; } = null!;
 
         /// <summary>
         /// 错误信息
         /// </summary>
-        public LogErrorInfo Error { get; set; } = null!;
+        public LogErrorInfo? Error { get; set; } = null!;
 
         /// <summary>
         /// 日志标签

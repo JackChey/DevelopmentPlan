@@ -5,10 +5,13 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Serilog.Debugging;
 using System.Reflection;
 
 try
 {
+    SelfLog.Enable(msg => System.Diagnostics.Debug.WriteLine(msg)); // ×îÔçÆôÓÃ
+
     var version = Assembly.GetEntryAssembly()!.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version;
 
     var builder = WebApplication.CreateBuilder(args);
