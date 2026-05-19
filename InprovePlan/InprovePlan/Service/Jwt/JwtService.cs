@@ -41,7 +41,7 @@ namespace InprovePlan.Service.Jwt
             {
                 new Claim(ClaimTypes.Name,appuser.UserName),
                 new Claim(ClaimTypes.NameIdentifier,appuser.UserId.ToString()),
-                new Claim("root",appuser.Root!),
+                new Claim("role",appuser.Root!),
             },
             expires:System.DateTime.Now.AddMinutes(jwtsettings.Value.AccessTokenExpirationMinutes),
             signingCredentials: new( new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtsettings.Value.Secret)),SecurityAlgorithms.HmacSha256 )

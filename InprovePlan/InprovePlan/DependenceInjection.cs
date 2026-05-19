@@ -186,6 +186,9 @@ namespace InprovePlan
                 .CreateLogger()
                 ;
 
+
+            builder.Services.AddHttpContextAccessor();
+
             builder.Services.AddTransient<ILogEventSink, SerilogEventSink>();
 
             // 获取实例标识

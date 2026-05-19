@@ -9,13 +9,14 @@ using System.Text.Json;
 using System.IO;
 using System.Text;
 using InprovePlan.Exceptions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace InprovePlan.SystemLogs.LogEvents
 {
     /// <summary>
     /// 处理日志,日志往哪里写、怎么写
     /// </summary>
-    public class SerilogEventSink() : ILogEventSink
+    public class SerilogEventSink(IHttpContextAccessor httpContextAccessor) : ILogEventSink
     {
         /// <summary>
         /// 
@@ -31,6 +32,8 @@ namespace InprovePlan.SystemLogs.LogEvents
         {
             // 获取日志信息
 
+            var context = httpContextAccessor.HttpContext;
+
             var occurrenceTime = logEvent.Timestamp;
             var level = logEvent.Level.ToString();
             var msg = logEvent.Exception?.Message ?? "No Msg";
@@ -38,8 +41,9 @@ namespace InprovePlan.SystemLogs.LogEvents
             logEvent.Properties.TryGetValue("service", out var service);
             logEvent.Properties.TryGetValue("version", out var version);
             logEvent.Properties.TryGetValue("env", out var env);
-            logEvent.Properties.TryGetValue("event", out var logevent);
+            logEvent.Properties.TryGetValue("event", out var tempEvent);
             logEvent.Properties.TryGetValue("http", out var http);
+            logEvent.Properties.TryGetValue("errorcode", out var errorcode);
 
             var method = string.Empty;
             var route = string.Empty;
@@ -66,6 +70,23 @@ namespace InprovePlan.SystemLogs.LogEvents
             var traceId = logEvent.TraceId;
             var spanId = logEvent.SpanId;
 
+            var userId = context.User.Claims.FirstOrDefault(x => x.Equals("NameIdentifier"))?.Value ?? "";
+            var role = context.User.Claims.Where(x => x.Equals("role")).Select(x => x.Value.ToString()).ToArray();
+
+            var auth = new LogAuthorizationInfo()
+            {
+                UserId = userId,
+                Role = role,
+            };
+
+            var expError = new LogErrorInfo()
+            {
+                Code = errorcode?.ToString() ?? "UNHANDLED_EXCEPTION",
+                Message = logEvent.Exception?.Message ?? "Unkown Message",
+                Stack = logEvent.Exception?.StackTrace ?? "Unkown Stack",
+                Type = logEvent.Exception?.GetType().ToString() ?? "Unkown Type",
+            };
+
             if (logEvent.Level > LogEventLevel.Warning)
             {
                 var expLog = new AppExceptionLog()
@@ -79,8 +100,9 @@ namespace InprovePlan.SystemLogs.LogEvents
                     Instance = instance?.ToString() ?? "No Instance",
                     TraceId = traceId,
                     SpanId = spanId,
-                    Event = logevent?.ToString() ?? "No Event",
+                    Event = tempEvent?.ToString() ?? "No Event",
                     Http = logHttp,
+                    Error = expError,
                 };
 
                 // 将日志信息序列号存储
@@ -88,7 +110,7 @@ namespace InprovePlan.SystemLogs.LogEvents
             }
             else
             {
-                var applog = new AppLog()
+                var applog = new AppRequestLog()
                 {
                     OccurrenceTime = occurrenceTime,
                     Level = level,
@@ -99,6 +121,9 @@ namespace InprovePlan.SystemLogs.LogEvents
                     Instance = instance?.ToString() ?? "No Instance",
                     TraceId = traceId,
                     SpanId = spanId,
+                    Auth = auth,
+                    Event = tempEvent?.ToString() ?? "No Event",
+                    Http = logHttp,
                 };
 
                 // 将日志信息序列号存储
@@ -114,7 +139,7 @@ namespace InprovePlan.SystemLogs.LogEvents
         {
             var line = JsonSerializer.Serialize(appException);
 
-            var filePath = Path.Combine(AppContext.BaseDirectory, "AppLog.ndjson");
+            var filePath = Path.Combine(AppContext.BaseDirectory + "/Logs", "AppLogs.ndjson");
 
             lock (_lock)
             {
@@ -126,7 +151,7 @@ namespace InprovePlan.SystemLogs.LogEvents
         /// <summary>
         /// 
         /// </summary>
-        private void WriteJsonFile(AppLog appLog)
+        private void WriteJsonFile(AppRequestLog appLog)
         {
             var line = JsonSerializer.Serialize(appLog);
 

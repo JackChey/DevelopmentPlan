@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Instructure.IResult;
+using Instructure.Response;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Serilog;
+using System.Diagnostics;
 
 namespace InprovePlan.Filters
 {
@@ -30,17 +34,24 @@ namespace InprovePlan.Filters
 
             var user = context.HttpContext.User;
 
+            var traceId = context.HttpContext.TraceIdentifier;
+
             // 处理未授权
             if (!(user.Identity?.IsAuthenticated ?? true))
             {
-                context.Result = new UnauthorizedResult();
-                Log.ForContext("event", "auth.access.unauthorized").Warning("auth.access.unauthorized");
+              //  var response = ApiResponse<object>.Fail(
+              //StatusCodes.Status401Unauthorized.ToString(),
+              //"Unauthorized",
+              //traceId);
 
+                //context.Result = new UnauthorizedResult();
+                Log.ForContext("event", "auth.access.unauthorized").Warning("auth.access.unauthorized");
                 return;
             }
 
             // 处理权限不够(这里缺少仓储层后续完善
-            // 去数据库校对 user 中的 Role,若权限不足则返回 403并输出日志
+            // 去数据库校对 user 中的 Role,若权限不足则输出日志
+
 
             //throw new NotImplementedException();
         }
