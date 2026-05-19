@@ -20,16 +20,22 @@ namespace InprovePlan.SystemLogs.Mappers
             {
                 OccurrenceTime = e.Timestamp,
                 Level = e.Level.ToString(),
-                Msg = e.Exception?.Message ?? "No Msg",
+                Msg = e.Exception?.Message ,
                 Event = GetString(e, "event") ?? string.Empty,
                 Service = GetString(e, "service") ?? string.Empty,
                 Env = GetString(e, "env") ?? string.Empty,
                 Version = GetString(e, "version") ?? string.Empty,
-                Instance = GetString(e, "Instance") ?? string.Empty,
+                Instance = GetString(e, "instance") ?? string.Empty,
                 TraceId = e.TraceId,
                 SpanId = e.SpanId,
                 Http = GetObj<LogHttpRequestInfo>(e, "http") ,
-                Error = GetObj<LogErrorInfo>(e, "error") ,
+                Error = new LogErrorInfo()
+                {
+                    Code = GetString(e, "errorcode") ?? string.Empty,
+                    Message = e.Exception?.Message,
+                    Stack = e.Exception?.StackTrace ?? "Unkown Stack",
+                    Type = e.Exception?.GetType().ToString(),
+                },
                 Tags = GetStringArray(e, "tags"),
             };
         }

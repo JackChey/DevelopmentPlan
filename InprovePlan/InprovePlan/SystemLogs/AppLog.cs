@@ -20,7 +20,7 @@ namespace InprovePlan.SystemLogs
         /// <summary>
         /// 日志信息
         /// </summary>
-        public string Msg { get; set; } = string.Empty;
+        public string? Msg { get; set; } = string.Empty;
 
         /// <summary>
         /// 服务名（微服务/应用名），用于区分日志来源系统
