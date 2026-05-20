@@ -16,27 +16,35 @@ namespace InprovePlan.SystemLogs.Mappers
         /// <returns></returns>
         public static AppExceptionLog Map(LogEvent e)
         {
+            var loghttp = GetObj<LogHttpRequestInfo>(e, "http");
+
+            if (loghttp is not null)
+            {
+                loghttp.DurationMs = double.Parse(GetString(e, "Elapsed") ?? "0");
+            }
+
             return new AppExceptionLog()
             {
                 OccurrenceTime = e.Timestamp,
                 Level = e.Level.ToString(),
-                Msg = e.Exception?.Message ,
+                Msg = GetString(e, "msg") ?? e.Exception?.Message,
                 Event = GetString(e, "event") ?? string.Empty,
                 Service = GetString(e, "service") ?? string.Empty,
                 Env = GetString(e, "env") ?? string.Empty,
                 Version = GetString(e, "version") ?? string.Empty,
                 Instance = GetString(e, "instance") ?? string.Empty,
-                TraceId = e.TraceId,
-                SpanId = e.SpanId,
-                Http = GetObj<LogHttpRequestInfo>(e, "http") ,
+                TraceId = e.TraceId.ToString(),
+                SpanId = e.SpanId.ToString(),
+                Http = loghttp,
                 Error = new LogErrorInfo()
                 {
-                    Code = GetString(e, "errorcode") ?? string.Empty,
+                    Code = GetString(e, "errorcode") ?? "code",
                     Message = e.Exception?.Message,
-                    Stack = e.Exception?.StackTrace ?? "Unkown Stack",
+                    Stack = e.Exception?.StackTrace ,
                     Type = e.Exception?.GetType().ToString(),
                 },
                 Tags = GetStringArray(e, "tags"),
+             
             };
         }
     }

@@ -25,7 +25,9 @@ namespace InprovePlan.Filters
             };
 
             Log.ForContext("http", http, destructureObjects: true)
-                .ForContext("event", "http.request.completed").Information("http.request.completed");
+                .ForContext("event", "http.request.completed")
+                .ForContext("msg", "http.request.completed")
+                .Information("http.request.completed");
         }
 
         /// <summary>
@@ -44,7 +46,9 @@ namespace InprovePlan.Filters
             };
 
             Log.ForContext("http", http, destructureObjects: true)
-                .ForContext("event", "http.request.started").Information("http.request.started");
+                .ForContext("event", "http.request.started")
+                .ForContext("msg", "http.request.started")
+                .Information("http.request.started");
         }
 
        

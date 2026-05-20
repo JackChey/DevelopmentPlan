@@ -39,13 +39,17 @@ namespace InprovePlan.Filters
             // 处理未授权
             if (!(user.Identity?.IsAuthenticated ?? true))
             {
-              //  var response = ApiResponse<object>.Fail(
-              //StatusCodes.Status401Unauthorized.ToString(),
-              //"Unauthorized",
-              //traceId);
+                //  var response = ApiResponse<object>.Fail(
+                //StatusCodes.Status401Unauthorized.ToString(),
+                //"Unauthorized",
+                //traceId);
 
                 //context.Result = new UnauthorizedResult();
-                Log.ForContext("event", "auth.access.unauthorized").Warning("auth.access.unauthorized");
+                Log.ForContext("event", "auth.access.unauthorized")
+                   .ForContext("errorcode", "AUTH_UNAUTHORIZED")
+                   .ForContext("msg", "unauthorized")
+                   .Warning("auth.access.unauthorized");
+
                 return;
             }
 

@@ -4,6 +4,7 @@ using InprovePlan.IService.Jwt;
 using InprovePlan.ModeDto;
 using InprovePlan.Service.Jwt;
 using Instructure.IResult;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static InprovePlan.Controllers.UserController;
 
@@ -22,6 +23,7 @@ namespace InprovePlan.Controllers
         /// <param name="userRequest"></param>
         /// <returns></returns>
         [HttpPost()]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] UserRequest userRequest)
         {
             if (userRequest.userid <= 0)

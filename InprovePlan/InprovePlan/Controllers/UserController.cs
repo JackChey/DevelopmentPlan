@@ -89,7 +89,10 @@ namespace InprovePlan.Controllers
 
             if (userName.Equals("Nick"))
             {
-                return ReturnResult(Result.Invalid("用户名非法"));
+                // 这里为测试日志异常,后续可用下面的返回结果
+
+                throw new ValidationException(new Dictionary<string, string[]>() { { "验证不通过", new string[] { "用户名非法" } } });
+                //return ReturnResult(Result.Invalid("用户名非法"));
             }
 
             var user = Users._users.FirstOrDefault(u => u.UserId.Equals(userId));

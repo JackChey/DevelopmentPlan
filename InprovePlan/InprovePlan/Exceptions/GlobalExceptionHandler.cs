@@ -49,11 +49,11 @@ namespace InprovePlan.Exceptions
             // 若异常状态大于等于 500 ,则代表重大异常,需要进行记录,
             if (statusCode >= 500)
             {
-                _logger.LogError(exception, "Event:{event},ErrorCode:{errorcode},Unhandled bussiness exception.TraceId={TraceId}", "http.request.failed", errorcode, Activity.Current?.Id ?? httpContext.TraceIdentifier);
+                _logger.LogError(exception, "Event:{event},ErrorCode:{errorcode},Unhandled bussiness exception.TraceId={TraceId},Msg:{}", "http.request.failed", errorcode, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Unhandled_Exception");
             }
             else
             {
-                _logger.LogWarning(exception, "Handled bussiness exception.TraceId={TraceId}", Activity.Current?.Id ?? httpContext.TraceIdentifier);
+                _logger.LogWarning(exception, "Handled bussiness exception.TraceId={TraceId},Msg:{}", Activity.Current?.Id ?? httpContext.TraceIdentifier, "Handled_Exception");
             }
 
             var response = ApiResponse<object?>.Fail(errorcode, message, traceId, details);

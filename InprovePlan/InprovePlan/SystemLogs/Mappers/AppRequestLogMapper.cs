@@ -16,23 +16,33 @@ namespace InprovePlan.SystemLogs.Mappers
         /// <returns></returns>
         public static AppRequestLog Map(LogEvent e)
         {
+            var loghttp = GetObj<LogHttpRequestInfo>(e, "http");
+
+            if (loghttp is not null)
+            {
+                var temp = GetString(e, "Elapsed");
+
+                loghttp.DurationMs = double.Parse(GetString(e, "Elapsed") ?? "0");
+            }
+
             return new AppRequestLog()
             {
                 OccurrenceTime = e.Timestamp,
                 Level = e.Level.ToString(),
-                Msg = e.Exception?.Message,
+                Msg = GetString(e, "msg") ?? e.Exception?.Message,
                 Event = GetString(e, "event") ?? string.Empty,
                 Service = GetString(e, "service") ?? string.Empty,
                 Env = GetString(e, "env") ?? string.Empty,
                 Version = GetString(e, "version") ?? string.Empty,
                 Instance = GetString(e, "instance") ?? string.Empty,
-                TraceId = e.TraceId,
-                SpanId = e.SpanId,
+                TraceId = e.TraceId.ToString(),
+                SpanId = e.SpanId.ToString(),
                 Auth = GetObj<LogAuthorizationInfo>(e, "auth"),
-                Http = GetObj<LogHttpRequestInfo>(e, "http") ,
+                Http = loghttp,
                 Biz = GetObj<LogBusinessContext>(e, "biz"),
                 Error = e.Exception?.Message ?? GetString(e, "error"),
                 Tags = GetStringArray(e, "tags"),
+             
             };
         }
     }
