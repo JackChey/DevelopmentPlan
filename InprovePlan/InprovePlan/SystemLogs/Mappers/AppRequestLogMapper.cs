@@ -7,7 +7,7 @@ namespace InprovePlan.SystemLogs.Mappers
     /// <summary>
     /// 
     /// </summary>
-    public class AppRequestLogMapper(): LogMapper
+    public class AppRequestLogMapper() : LogMapper
     {
         /// <summary>
         /// 
@@ -16,13 +16,20 @@ namespace InprovePlan.SystemLogs.Mappers
         /// <returns></returns>
         public static AppRequestLog Map(LogEvent e)
         {
+
             var loghttp = GetObj<LogHttpRequestInfo>(e, "http");
 
-            if (loghttp is not null)
+            if (loghttp is null)
             {
-                var temp = GetString(e, "Elapsed");
+                //loghttp = new()
+                //{
+                //    Method = GetString(e, "RequestMethod") ?? string.Empty,
+                //    Route = GetString(e, "RequestPath") ?? string.Empty,
+                //    StatusCode = int.Parse(GetString(e, "StatusCode") ?? "0"),
+                //    DurationMs = double.Parse(GetString(e, "Elapsed") ?? "0"),
+                //    ClientIp = GetString(e, "ClientIp"),
+                //};
 
-                loghttp.DurationMs = double.Parse(GetString(e, "Elapsed") ?? "0");
             }
 
             return new AppRequestLog()
@@ -42,7 +49,7 @@ namespace InprovePlan.SystemLogs.Mappers
                 Biz = GetObj<LogBusinessContext>(e, "biz"),
                 Error = e.Exception?.Message ?? GetString(e, "error"),
                 Tags = GetStringArray(e, "tags"),
-             
+
             };
         }
     }

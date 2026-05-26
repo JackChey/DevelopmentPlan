@@ -8,6 +8,8 @@ using Serilog;
 using Serilog.Debugging;
 using System.Reflection;
 
+using Prometheus;
+
 try
 {
     SelfLog.Enable(msg => System.Diagnostics.Debug.WriteLine(msg)); // 最早启用
@@ -118,6 +120,16 @@ try
     {
         options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} => {StatusCode} in {Elapsed:0.0000} ms;";
     });
+
+    // 自动采集 HTTP 指标（包含耗时直方图）
+    app.UseHttpMetrics(options =>
+    {
+        // 关键：按路由模板聚合，避免高基数
+        options.ReduceStatusCodeCardinality();
+    });
+
+    // 暴露 Prometheus 抓取端点
+    app.MapMetrics("/metrics");
 
     app.UseExceptionHandler();
 

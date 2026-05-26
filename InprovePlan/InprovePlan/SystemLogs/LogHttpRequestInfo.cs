@@ -8,27 +8,27 @@
         /// <summary>
         /// 请求类型
         /// </summary>
-        public string Method { get; set; } = string.Empty;
+        public string? Method { get; set; } = string.Empty;
 
         /// <summary>
         /// 请求路由
         /// </summary>
-        public string Route { get; set; } = string.Empty;
+        public string? Route { get; set; } = string.Empty;
 
         /// <summary>
         /// 响应状态
         /// </summary>
-        public int StatusCode { get; set; } 
+        public int? StatusCode { get; set; } 
 
         /// <summary>
         /// 耗时
         /// </summary>
-        public double DurationMs { get; set; }
+        public double? DurationMs { get; set; }
 
         /// <summary>
         /// 客户端IP
         /// </summary>
-        public string ClientIp { get; set; } = string.Empty;
+        public string? ClientIp { get; set; } = string.Empty;
 
 
     }

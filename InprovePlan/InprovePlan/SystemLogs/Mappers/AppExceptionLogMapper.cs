@@ -18,9 +18,16 @@ namespace InprovePlan.SystemLogs.Mappers
         {
             var loghttp = GetObj<LogHttpRequestInfo>(e, "http");
 
-            if (loghttp is not null)
+            if (loghttp is null)
             {
-                loghttp.DurationMs = double.Parse(GetString(e, "Elapsed") ?? "0");
+                //loghttp = new()
+                //{
+                //    Method = GetString(e, "RequestMethod") ?? string.Empty,
+                //    Route = GetString(e, "RequestPath") ?? string.Empty,
+                //    StatusCode = int.Parse(GetString(e, "StatusCode") ?? "0"),
+                //    DurationMs = double.Parse(GetString(e, "Elapsed") ?? "0"),
+                //    ClientIp = GetString(e, "ClientIp"),
+                //};
             }
 
             return new AppExceptionLog()
