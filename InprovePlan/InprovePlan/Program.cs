@@ -18,6 +18,7 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
+    builder.ConfigEnvironment();
     builder.Services.AddAppServices(builder.Configuration);
 
 

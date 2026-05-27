@@ -1,10 +1,14 @@
 ﻿using InprovePlan.Connections;
 using InprovePlan.Filters;
 using InprovePlan.IService.Jwt;
+using InprovePlan.IService.Prometheus;
+using InprovePlan.Prometheus;
 using InprovePlan.Service.Jwt;
+using InprovePlan.Service.Prometheus;
 using InprovePlan.SystemLogs.LogEvents;
 using Instructure.Response;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Reflection;
@@ -25,8 +29,6 @@ namespace InprovePlan
         /// <returns></returns>
         public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
         {
-            ConfigEnvironment(services, configuration);
-
             // 注册 AutoMapper
             services.AddAutoMapper(cfg =>
             {
@@ -69,6 +71,8 @@ namespace InprovePlan
             services.AddTransient<IJwtService, JwtService>();
 
             ConfigureAuthentication(services, jwtsettings);
+
+            ConfigPrometheus(services);
 
             return services;
         }
@@ -139,13 +143,12 @@ namespace InprovePlan
         /// <summary>
         /// 根据不同的配置环境读取配置文件
         /// </summary>
-        /// <param name="services"></param>
-        /// <param name="configuration"></param>
+        /// <param name="builder"></param>
         /// <returns></returns>
-        public static IServiceCollection ConfigEnvironment(this IServiceCollection services, IConfiguration configuration)
+        public static WebApplicationBuilder ConfigEnvironment(this WebApplicationBuilder builder)
         {
             // 获取当前配置环境
-            var currentEnv = configuration.GetSection("Run_Environment").Get<string>();
+            var currentEnv = builder.Environment.EnvironmentName;
 
             // 根据环境读取不同的配置文件
             var settingPath = Path.Combine(AppContext.BaseDirectory, $"appsettings_{currentEnv}.json");
@@ -160,12 +163,14 @@ namespace InprovePlan
             var dbConnectionStr = envSetting.GetSection("ConnectionStrings:DBConnection");
             var rediaConnectionStr = envSetting.GetSection("ConnectionStrings:RedisConnection");
             var rabbitMqConnectionStr = envSetting.GetSection("ConnectionStrings:RabbitMqConnection");
+            var prometheusConnectionStr = envSetting.GetSection("PrometheusConnection");
 
-            services.Configure<DBConnection>(dbConnectionStr);
-            services.Configure<RedisConnection>(rediaConnectionStr);
-            services.Configure<RabbitMqConnection>(rabbitMqConnectionStr);
+            builder.Services.Configure<DBConnection>(dbConnectionStr);
+            builder.Services.Configure<RedisConnection>(rediaConnectionStr);
+            builder.Services.Configure<RabbitMqConnection>(rabbitMqConnectionStr);
+            builder.Services.Configure<PrometheusConnection>(prometheusConnectionStr);
 
-            return services;
+            return builder;
         }
 
         /// <summary>
@@ -220,6 +225,28 @@ namespace InprovePlan
             return builder;
         }
 
+        /// <summary>
+        /// 配置 Prometheus
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection ConfigPrometheus(this IServiceCollection services)
+        {
+            services.AddHttpClient<IPrometheusQueryService, PrometheusQueryService>((sp, client) =>
+            {
+                var opt = sp.GetRequiredService<IOptions<PrometheusConnection>>().Value;
 
+                if (string.IsNullOrWhiteSpace(opt.IP))
+                    throw new InvalidOperationException("Prometheus:BaseUrl is not configured.");
+
+                // Prometheus 服务地址（按实际环境改）
+                client.BaseAddress = new Uri($"http://{opt.IP}:{opt.Port}");
+
+                // 建议设置短超时，避免业务线程长时间等待监控系统
+                client.Timeout = TimeSpan.FromSeconds(opt.TimeoutSeconds <= 0 ? 5 : opt.TimeoutSeconds);
+            });
+
+            return services;
+        }
     }
 }

@@ -21,14 +21,14 @@ namespace InprovePlan.SystemLogs.Mappers
 
             if (loghttp is null)
             {
-                //loghttp = new()
-                //{
-                //    Method = GetString(e, "RequestMethod") ?? string.Empty,
-                //    Route = GetString(e, "RequestPath") ?? string.Empty,
-                //    StatusCode = int.Parse(GetString(e, "StatusCode") ?? "0"),
-                //    DurationMs = double.Parse(GetString(e, "Elapsed") ?? "0"),
-                //    ClientIp = GetString(e, "ClientIp"),
-                //};
+                loghttp = new()
+                {
+                    Method = GetString(e, "RequestMethod") ?? string.Empty,
+                    Route = GetString(e, "RequestPath") ?? string.Empty,
+                    StatusCode = int.Parse(GetString(e, "StatusCode") ?? "0"),
+                    DurationMs = double.Parse(GetString(e, "Elapsed") ?? "0"),
+                    ClientIp = GetString(e, "ClientIp"),
+                };
 
             }
 

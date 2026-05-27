@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using IResult = Instructure.IResult.IResult;
 using Instructure.IResult;
 using InprovePlan.Helper;
 using Instructure.Response;
@@ -16,7 +17,7 @@ namespace InprovePlan.Controllers
         /// <param name="result"></param>
         /// <returns></returns>
         [NonAction]
-        public IActionResult ReturnResult(Instructure.IResult.IResult result)
+        public IActionResult ReturnResult(IResult result)
         {
             var traceId = HttpContext.TraceIdentifier;
 
@@ -40,7 +41,7 @@ namespace InprovePlan.Controllers
         /// <param name="result"></param>
         /// <returns></returns>
         [NonAction]
-        public IActionResult ReturnResult<T>(Instructure.IResult.IResult<T> result)
+        public IActionResult ReturnResult<T>(IResult<T> result)
         {
             var traceId = HttpContext.TraceIdentifier;
 
