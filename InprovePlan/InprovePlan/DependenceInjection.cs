@@ -163,12 +163,12 @@ namespace InprovePlan
             var dbConnectionStr = envSetting.GetSection("ConnectionStrings:DBConnection");
             var rediaConnectionStr = envSetting.GetSection("ConnectionStrings:RedisConnection");
             var rabbitMqConnectionStr = envSetting.GetSection("ConnectionStrings:RabbitMqConnection");
-            var prometheusConnectionStr = envSetting.GetSection("PrometheusConnection");
+            var prometheusSeetings = envSetting.GetSection("PrometheusSeetings");
 
             builder.Services.Configure<DBConnection>(dbConnectionStr);
             builder.Services.Configure<RedisConnection>(rediaConnectionStr);
             builder.Services.Configure<RabbitMqConnection>(rabbitMqConnectionStr);
-            builder.Services.Configure<PrometheusConnection>(prometheusConnectionStr);
+            builder.Services.Configure<PrometheusSeetings>(prometheusSeetings);
 
             return builder;
         }
@@ -232,9 +232,11 @@ namespace InprovePlan
         /// <returns></returns>
         public static IServiceCollection ConfigPrometheus(this IServiceCollection services)
         {
+            services.AddHttpClient("prom-check");
+
             services.AddHttpClient<IPrometheusQueryService, PrometheusQueryService>((sp, client) =>
             {
-                var opt = sp.GetRequiredService<IOptions<PrometheusConnection>>().Value;
+                var opt = sp.GetRequiredService<IOptions<PrometheusSeetings>>().Value;
 
                 if (string.IsNullOrWhiteSpace(opt.IP))
                     throw new InvalidOperationException("Prometheus:BaseUrl is not configured.");
@@ -245,6 +247,8 @@ namespace InprovePlan
                 // 建议设置短超时，避免业务线程长时间等待监控系统
                 client.Timeout = TimeSpan.FromSeconds(opt.TimeoutSeconds <= 0 ? 5 : opt.TimeoutSeconds);
             });
+
+            services.AddHostedService<PrometheusMetricStartupCheck>();
 
             return services;
         }

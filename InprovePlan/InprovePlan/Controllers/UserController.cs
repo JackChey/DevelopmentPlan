@@ -2,7 +2,6 @@
 using InprovePlan.Exceptions;
 using InprovePlan.FakeData;
 using InprovePlan.ModeDto;
-using InprovePlan.Model;
 using Instructure.IResult;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +16,11 @@ namespace InprovePlan.Controllers
     public class UserController(IMapper mapper,ILogger<UserController> logger) : BaseController
     {
 
-
+        /// <summary>
+        /// /
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <param name="password"></param>
         public record UserRequest(int userid, string password);
 
         /// <summary>

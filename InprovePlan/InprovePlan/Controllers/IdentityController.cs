@@ -1,8 +1,4 @@
-﻿using AutoMapper;
-using InprovePlan.FakeData;
-using InprovePlan.IService.Jwt;
-using InprovePlan.ModeDto;
-using InprovePlan.Service.Jwt;
+﻿using InprovePlan.IService.Jwt;
 using Instructure.IResult;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,7 +50,8 @@ namespace InprovePlan.Controllers
             //    //});
             //}
 
-            var token = await jwtService.GetAccessTokenAsync(userRequest.userid, userRequest.password);
+            //var token = await jwtService.GetAccessTokenAsync(userRequest.userid, userRequest.password);
+            var token =  jwtService.GetAccessToken(userRequest.userid, userRequest.password);
 
             if (token is null)
             {

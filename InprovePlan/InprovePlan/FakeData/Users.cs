@@ -2,8 +2,14 @@
 
 namespace InprovePlan.FakeData
 {
+    /// <summary>
+    /// 虚拟用户数据
+    /// </summary>
     public class Users
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public static List<AppUser> _users = new()
         {
             new AppUser()

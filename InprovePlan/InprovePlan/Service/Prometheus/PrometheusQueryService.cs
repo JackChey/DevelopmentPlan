@@ -1,4 +1,7 @@
 ﻿using InprovePlan.IService.Prometheus;
+using InprovePlan.Prometheus;
+using Microsoft.Extensions.Options;
+using Prometheus;
 using System.Text.Json;
 using System.Web;
 
@@ -8,7 +11,8 @@ namespace InprovePlan.Service.Prometheus
     /// 
     /// </summary>
     /// <param name="_httpClient"></param>
-    public class PrometheusQueryService(HttpClient _httpClient) : IPrometheusQueryService
+    /// <param name="_promSeetings"></param>
+    public class PrometheusQueryService(HttpClient _httpClient,IOptions<PrometheusSeetings> _promSeetings) : IPrometheusQueryService
     {
         /// <summary>
         /// 
@@ -24,12 +28,12 @@ namespace InprovePlan.Service.Prometheus
             // 3) by (le) 是 histogram_quantile 的必要维度
             // 4) 乘以 1000 把秒转换为毫秒
             // 5) 排除 /metrics，避免被 Prometheus 自身抓取流量干扰
-            var promQl = """
-        1000 * histogram_quantile(
-          0.50,
-          sum(rate(microsoft_aspnetcore_hosting_http_server_request_duration_bucket{http_route!="/metrics"}[5m])) by (le)
-        )
-        """;
+            var promQl = $$"""
+histogram_quantile(
+  0.50,
+  sum(rate({{_promSeetings.Value.HttpDurationBucketMetric}}{http_route!="/metrics"}[5m])) by (le)
+)
+""";
 
             return await PrometheusQuery(promQl, ct);
         }
@@ -48,12 +52,12 @@ namespace InprovePlan.Service.Prometheus
             // 3) by (le) 是 histogram_quantile 的必要维度
             // 4) 乘以 1000 把秒转换为毫秒
             // 5) 排除 /metrics，避免被 Prometheus 自身抓取流量干扰
-            var promQl = """
-        1000 * histogram_quantile(
-          0.90,
-          sum(rate(microsoft_aspnetcore_hosting_http_server_request_duration_bucket{http_route!="/metrics"}[5m])) by (le)
-        )
-        """;
+            var promQl = $$"""
+histogram_quantile(
+  0.90,
+  sum(rate({{_promSeetings.Value.HttpDurationBucketMetric}}{http_route!="/metrics"}[5m])) by (le)
+)
+""";
 
             return await PrometheusQuery(promQl, ct);
         }
@@ -72,12 +76,12 @@ namespace InprovePlan.Service.Prometheus
             // 3) by (le) 是 histogram_quantile 的必要维度
             // 4) 乘以 1000 把秒转换为毫秒
             // 5) 排除 /metrics，避免被 Prometheus 自身抓取流量干扰
-            var promQl = """
-        1000 * histogram_quantile(
-          0.95,
-          sum(rate(microsoft_aspnetcore_hosting_http_server_request_duration_bucket{http_route!="/metrics"}[5m])) by (le)
-        )
-        """;
+            var promQl = $$"""
+histogram_quantile(
+  0.95,
+  sum(rate({{_promSeetings.Value.HttpDurationBucketMetric}}{http_route!="/metrics"}[5m])) by (le)
+)
+""";
 
             return await PrometheusQuery(promQl, ct);
         }

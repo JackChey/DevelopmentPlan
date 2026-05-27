@@ -23,7 +23,8 @@ namespace InprovePlan.Service.Jwt
         /// <param name="passWord"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task<Result<string>> GetAccessTokenAsync(int userId, string passWord)
+        //public async Task<Result<string>> GetAccessTokenAsync(int userId, string passWord)
+        public Result<string> GetAccessToken(int userId, string passWord)
         {
             // 验证用户信息
             var appuser = Users._users.FirstOrDefault(x=>x.UserId.Equals(userId) && x.PassWord.Equals(passWord));

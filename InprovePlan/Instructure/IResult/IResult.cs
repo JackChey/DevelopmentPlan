@@ -13,6 +13,8 @@ namespace Instructure.IResult
         public IReadOnlyList<string>? Errors { get; } 
 
         bool IsSuccess { get; }
+
+        string? Message { get; set; }
     }
 
     public interface IResult<out T>: IResult

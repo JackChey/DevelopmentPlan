@@ -13,6 +13,8 @@ namespace Instructure.IResult
     {
         public ResultStatus Status { get; }
 
+        public string? Message { get; set; } 
+
         public IReadOnlyList<string>? Errors { get; }
 
         public bool IsSuccess => Status.Equals(ResultStatus.Ok);
@@ -26,7 +28,10 @@ namespace Instructure.IResult
                 throw new InvalidOperationException("Success result cannot contain errors.");
         }
 
-        public static Result Seccess => new Result(ResultStatus.Ok);
+        public static Result Seccess(string? message ) => new Result(ResultStatus.Ok)
+        {
+            Message = message,
+        };
 
         internal static IReadOnlyList<string>? NormalizeErrors(IEnumerable<string> errors) => errors.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct().ToArray();
 
@@ -48,6 +53,8 @@ namespace Instructure.IResult
     public class Result<T> : IResult<T>
     {
         public ResultStatus Status { get; }
+
+        public string? Message { get; set; }
 
         public IReadOnlyList<string>? Errors { get; }
 

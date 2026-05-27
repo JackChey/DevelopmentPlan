@@ -1,10 +1,4 @@
-﻿using AutoMapper;
-using InprovePlan.Connections;
-using InprovePlan.Exceptions;
-using InprovePlan.FakeData;
-using InprovePlan.ModeDto;
-using InprovePlan.Model;
-using InprovePlan.Service.Jwt;
+﻿using InprovePlan.Connections;
 using Instructure.IResult;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
