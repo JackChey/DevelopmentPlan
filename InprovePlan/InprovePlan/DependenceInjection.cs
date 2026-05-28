@@ -158,7 +158,7 @@ namespace InprovePlan
             services.Configure<DBConnection>(dbConnectionStr);
             services.Configure<RedisConnection>(rediaConnectionStr);
             services.Configure<RabbitMqConnection>(rabbitMqConnectionStr);
-            services.Configure<PrometheusSeetings>(prometheusSeetings);
+            services.Configure<PrometheusSettings>(prometheusSeetings);
 
             return services;
         }
@@ -226,7 +226,7 @@ namespace InprovePlan
 
             services.AddHttpClient<IPrometheusQueryService, PrometheusQueryService>((sp, client) =>
             {
-                var opt = sp.GetRequiredService<IOptions<PrometheusSeetings>>().Value;
+                var opt = sp.GetRequiredService<IOptions<PrometheusSettings>>().Value;
 
                 if (string.IsNullOrWhiteSpace(opt.IP))
                     throw new InvalidOperationException("Prometheus:BaseUrl is not configured.");

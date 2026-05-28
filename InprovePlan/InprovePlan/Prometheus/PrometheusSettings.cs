@@ -4,7 +4,7 @@
     /// Prometheus 连接配置
     /// 包含:连接IP,端口
     /// </summary>
-    public class PrometheusSeetings
+    public class PrometheusSettings
     {
         /// <summary>
         /// 连接IP

@@ -20,19 +20,21 @@ namespace InprovePlan.Controllers
         [HttpGet("P50")]
         public async Task<IActionResult> GetP50Async(CancellationToken ct)
         {
-            var p50Ms = await _prometheus.QueryP50Async(ct);
+            var p50 = await _prometheus.QueryP50Async(ct);
 
-            if (p50Ms is null )
+            // 查询失败：Prometheus 不可用、语法错误、网络异常等
+            if (!p50.Success)
             {
-                return ReturnResult(Result.Failure("获取 Prometheus P50失败"));
+                return ReturnResult(Result.Failure($"查询失败: {p50.Reason}"));
             }
 
-            if (double.IsNaN(p50Ms!.Value))
+            // 无数据窗口：流量太低/窗口内无样本
+            if (!p50.HasData || p50.Value is null)
             {
-                return ReturnResult(Result.Seccess("流量数据未达标,请稍等再试"));
+                return ReturnResult(Result.Seccess("当前时间窗口样本不足，请稍后重试"));
             }
 
-            return ReturnResult(new Result<double>(p50Ms ?? 0));
+            return ReturnResult(new Result<double>(p50.Value.Value));
         }
 
         /// <summary>
@@ -42,19 +44,21 @@ namespace InprovePlan.Controllers
         [HttpGet("P90")]
         public async Task<IActionResult> GetP90Async(CancellationToken ct)
         {
-            var p90Ms = await _prometheus.QueryP90Async(ct);
+            var p90 = await _prometheus.QueryP90Async(ct);
 
-            if (p90Ms is null)
+            // 查询失败：Prometheus 不可用、语法错误、网络异常等
+            if (!p90.Success)
             {
-                return ReturnResult(Result.Failure("获取 Prometheus P90失败"));
+                return ReturnResult(Result.Failure($"查询失败: {p90.Reason}"));
             }
 
-            if (double.IsNaN(p90Ms!.Value))
+            // 无数据窗口：流量太低/窗口内无样本
+            if (!p90.HasData || p90.Value is null)
             {
-                return ReturnResult(Result.Seccess("流量数据未达标,请稍等再试"));
+                return ReturnResult(Result.Seccess("当前时间窗口样本不足，请稍后重试"));
             }
 
-            return ReturnResult(new Result<double>(p90Ms ?? 0));
+            return ReturnResult(new Result<double>(p90.Value.Value));
         }
 
 
@@ -65,19 +69,21 @@ namespace InprovePlan.Controllers
         [HttpGet("P95")]
         public async Task<IActionResult> GetP95Async(CancellationToken ct)
         {
-            var p95Ms = await _prometheus.QueryP95Async(ct);
+            var p95 = await _prometheus.QueryP95Async(ct);
 
-            if (p95Ms is null)
+            // 查询失败：Prometheus 不可用、语法错误、网络异常等
+            if (!p95.Success)
             {
-                return ReturnResult(Result.Failure("获取 Prometheus P95失败"));
+                return ReturnResult(Result.Failure($"查询失败: {p95.Reason}"));
             }
 
-            if (double.IsNaN(p95Ms!.Value))
+            // 无数据窗口：流量太低/窗口内无样本
+            if (!p95.HasData || p95.Value is null)
             {
-                return ReturnResult(Result.Seccess("流量数据未达标,请稍等再试"));
+                return ReturnResult(Result.Seccess("当前时间窗口样本不足，请稍后重试"));
             }
 
-            return ReturnResult(new Result<double>(p95Ms ?? 0));
+            return ReturnResult(new Result<double>(p95.Value.Value));
         }
     }
 }

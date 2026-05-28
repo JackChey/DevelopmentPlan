@@ -15,7 +15,7 @@ namespace InprovePlan.Service.Prometheus
     /// <param name="_logger"></param>
     public class PrometheusMetricStartupCheck(
         IHttpClientFactory _httpClientFactory,
-        IOptions<PrometheusSeetings> _promSeetings,
+        IOptions<PrometheusSettings> _promSeetings,
         ILogger<PrometheusMetricStartupCheck> _logger) : IHostedService
     {
 
