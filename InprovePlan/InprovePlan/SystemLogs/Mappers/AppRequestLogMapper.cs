@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using InprovePlan.FakeData;
+using Microsoft.AspNetCore.Http;
 using Serilog.Events;
+using System.Data;
 using System.Security.Claims;
 
 namespace InprovePlan.SystemLogs.Mappers
@@ -31,6 +33,8 @@ namespace InprovePlan.SystemLogs.Mappers
                 };
 
             }
+
+            var auth = GetObj<LogAuthorizationInfo>(e, "auth");
 
             return new AppRequestLog()
             {

@@ -1,11 +1,15 @@
-﻿using Instructure.IResult;
+﻿using InprovePlan.FakeData;
+using InprovePlan.SystemLogs;
+using Instructure.IResult;
 using Instructure.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Serilog;
+using System.Data;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace InprovePlan.Filters
 {
@@ -36,6 +40,15 @@ namespace InprovePlan.Filters
 
             var traceId = context.HttpContext.TraceIdentifier;
 
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var role = user.FindAll(ClaimTypes.Role).Select(x => x.Value.ToString()).ToArray();
+
+            //var auth = new LogAuthorizationInfo()
+            //{
+            //    UserId = userId,
+            //    Role = role,
+            //};
+
             // 处理未授权
             if (!(user.Identity?.IsAuthenticated ?? true))
             {
@@ -52,6 +65,9 @@ namespace InprovePlan.Filters
 
                 return;
             }
+
+            //context.HttpContext.Items["auth"] = auth;
+
 
             // 处理权限不够(这里缺少仓储层后续完善
             // 去数据库校对 user 中的 Role,若权限不足则输出日志

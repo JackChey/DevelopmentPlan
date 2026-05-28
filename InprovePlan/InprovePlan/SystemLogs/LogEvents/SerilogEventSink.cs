@@ -69,7 +69,7 @@ namespace InprovePlan.SystemLogs.LogEvents
             var auth = new LogAuthorizationInfo()
             {
                 UserId = userId,
-                Role = role,
+                //Role = role,
             };
 
             var expError = new LogErrorInfo()

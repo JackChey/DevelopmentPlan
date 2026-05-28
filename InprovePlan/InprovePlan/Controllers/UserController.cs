@@ -90,13 +90,14 @@ namespace InprovePlan.Controllers
                 return ReturnResult(new Result(ResultStatus.Invalid, new List<string>() { "用户名未传或传值失败" }));
             }
 
-            if (userName.Equals("Nick"))
-            {
-                // 这里为测试日志异常,后续可用下面的返回结果
+            //if (userName.Equals("Nick"))
+            //{
+            //    // 这里为测试日志异常,后续可用下面的返回结果
 
-                throw new ValidationException(new Dictionary<string, string[]>() { { "验证不通过", new string[] { "用户名非法" } } });
-                //return ReturnResult(Result.Invalid("用户名非法"));
-            }
+            //    //throw new ValidationException(new Dictionary<string, string[]>() { { "验证不通过", new string[] { "用户名非法" } } });
+            //    throw new OperationCanceledException("用户名非法");
+            //    //return ReturnResult(Result.Invalid("用户名非法"));
+            //}
 
             var user = Users._users.FirstOrDefault(u => u.UserId.Equals(userId));
 

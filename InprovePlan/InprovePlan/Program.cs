@@ -9,6 +9,7 @@ using Serilog.Debugging;
 using System.Reflection;
 
 using Prometheus;
+using InprovePlan.Middlewares;
 
 try
 {
@@ -116,10 +117,18 @@ try
     app.UseForwardedHeaders();
 
     // 配置请求日志
-    app.UseSerilogRequestLogging(options =>
-    {
-        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} => {StatusCode} in {Elapsed:0.0000} ms;";
-    });
+    //app.UseSerilogRequestLogging(options =>
+    //{
+    //    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} => {StatusCode} in {Elapsed:0.0000} ms;";
+
+    //    options.EnrichDiagnosticContext = (diag, httpCtx) =>
+    //    {
+    //        if (httpCtx.Items.TryGetValue("auth", out var auth) && auth is not null)
+    //            diag.Set("auth", auth, destructureObjects: true);
+
+    //        diag.Set("traceId", httpCtx.TraceIdentifier);
+    //    };
+    //});
 
     // 自动采集 HTTP 指标（包含耗时直方图）
     app.UseHttpMetrics(options =>
@@ -146,6 +155,10 @@ try
     app.UseHttpsRedirection();
 
     app.UseAuthentication();
+
+    app.UseMiddleware<AuthLogContextMiddleware>();
+
+    app.UseMiddleware<RequestLifecycleMiddleware>();
 
     app.UseAuthorization();
 

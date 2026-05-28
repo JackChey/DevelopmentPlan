@@ -6,19 +6,29 @@
     public class LogAuthorizationInfo
     {
         /// <summary>
-        /// 请求用户ID
+        /// 是否授权
         /// </summary>
-        public string UserId { get; set; } = string.Empty;
+        public bool IsAuthenticated { get; set; }
 
         /// <summary>
-        /// 租户ID
+        /// 请求用户ID
         /// </summary>
-        public string TenantId { get; set; } = string.Empty;
+        public string? UserId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 用户名
+        /// </summary>
+        public string? UserName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 授权策略
+        /// </summary>
+        public string? AuthScheme { get; set; } = string.Empty;
 
         /// <summary>
         /// 角色
         /// </summary>
-        public string[]? Role { get; set; } 
+        public string[]? Roles { get; set; } 
        
     }
 }

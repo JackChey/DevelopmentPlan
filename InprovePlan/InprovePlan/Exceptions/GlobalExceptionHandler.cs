@@ -9,6 +9,7 @@ using Instructure.Response;
 using InprovePlan.Helper;
 using Serilog;
 using Microsoft.Extensions.Logging;
+using InprovePlan.SystemLogs;
 
 namespace InprovePlan.Exceptions
 {
@@ -46,14 +47,25 @@ namespace InprovePlan.Exceptions
             var traceId = Activity.Current?.Id ?? httpContext.TraceIdentifier;
             var statusCode = resultstatus.ToHttpStatusCode();
 
+            // 获取请求信息
+            var http = new LogHttpRequestInfo()
+            {
+                Route = httpContext.Request.Path,
+                Method = httpContext.Request.Method,
+                StatusCode = httpContext.Response.StatusCode,
+                ClientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "Unkown",
+            };
+
+            httpContext.Items.TryGetValue("auth", out var auth);
+
             // 若异常状态大于等于 500 ,则代表重大异常,需要进行记录,
             if (statusCode >= 500)
             {
-                _logger.LogError(exception, "Event:{event},ErrorCode:{errorcode},Unhandled bussiness exception.TraceId={TraceId},Msg:{}", "http.request.failed", errorcode, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Unhandled_Exception");
+                _logger.LogError(exception, "Event:{@event},Http:{@http},Auth:{@auth},ErrorCode:{@errorcode},Unhandled bussiness exception.TraceId={@traceId},Msg:{@msg}", "http.request.failed", http, auth,errorcode, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Unhandled_Exception");
             }
             else
             {
-                _logger.LogWarning(exception, "Handled bussiness exception.TraceId={TraceId},Msg:{}", Activity.Current?.Id ?? httpContext.TraceIdentifier, "Handled_Exception");
+                _logger.LogWarning(exception, "Event:{@event},Http:{@http},Auth:{@auth},Handled bussiness exception.TraceId={@traceId},Msg:{@msg}", "http.request.exceptionhandled", http, auth, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Handled_Exception");
             }
 
             var response = ApiResponse<object?>.Fail(errorcode, message, traceId, details);
