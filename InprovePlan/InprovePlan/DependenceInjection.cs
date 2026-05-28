@@ -35,7 +35,9 @@ namespace InprovePlan
                 cfg.AddMaps(Assembly.GetExecutingAssembly());
             }, Assembly.GetExecutingAssembly());
 
-            AddInfranstructureServices(services, configuration);
+            services.ConfigEnvironment(configuration);
+
+            services.AddInfranstructureServices(configuration);
 
             return services;
         }
@@ -143,34 +145,22 @@ namespace InprovePlan
         /// <summary>
         /// 根据不同的配置环境读取配置文件
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
-        public static WebApplicationBuilder ConfigEnvironment(this WebApplicationBuilder builder)
+        public static IServiceCollection ConfigEnvironment(this IServiceCollection services, IConfiguration configuration)
         {
-            // 获取当前配置环境
-            var currentEnv = builder.Environment.EnvironmentName;
+            var dbConnectionStr = configuration.GetSection("ConnectionStrings:DBConnection");
+            var rediaConnectionStr = configuration.GetSection("ConnectionStrings:RedisConnection");
+            var rabbitMqConnectionStr = configuration.GetSection("ConnectionStrings:RabbitMqConnection");
+            var prometheusSeetings = configuration.GetSection("PrometheusSeetings");
 
-            // 根据环境读取不同的配置文件
-            var settingPath = Path.Combine(AppContext.BaseDirectory, $"appsettings_{currentEnv}.json");
+            services.Configure<DBConnection>(dbConnectionStr);
+            services.Configure<RedisConnection>(rediaConnectionStr);
+            services.Configure<RabbitMqConnection>(rabbitMqConnectionStr);
+            services.Configure<PrometheusSeetings>(prometheusSeetings);
 
-            if (!File.Exists(settingPath))
-            {
-                throw new NullReferenceException($"当前环境:{currentEnv} 对应配置文件不存在");
-            }
-
-            var envSetting = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory).AddJsonFile(settingPath).Build();
-
-            var dbConnectionStr = envSetting.GetSection("ConnectionStrings:DBConnection");
-            var rediaConnectionStr = envSetting.GetSection("ConnectionStrings:RedisConnection");
-            var rabbitMqConnectionStr = envSetting.GetSection("ConnectionStrings:RabbitMqConnection");
-            var prometheusSeetings = envSetting.GetSection("PrometheusSeetings");
-
-            builder.Services.Configure<DBConnection>(dbConnectionStr);
-            builder.Services.Configure<RedisConnection>(rediaConnectionStr);
-            builder.Services.Configure<RabbitMqConnection>(rabbitMqConnectionStr);
-            builder.Services.Configure<PrometheusSeetings>(prometheusSeetings);
-
-            return builder;
+            return services;
         }
 
         /// <summary>

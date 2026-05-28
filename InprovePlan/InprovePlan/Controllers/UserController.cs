@@ -109,7 +109,7 @@ namespace InprovePlan.Controllers
 
             user.UserName = userName;
 
-            return ReturnResult(Result.Seccess);
+            return ReturnResult(Result.SeccessWithNoMsg);
         }
     }
 }

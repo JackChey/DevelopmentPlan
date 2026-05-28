@@ -21,7 +21,7 @@ namespace InprovePlan.Controllers
         [AllowAnonymous]
         public IActionResult live()
         {
-            return ReturnResult(Result.Seccess);
+            return ReturnResult(Result.SeccessWithNoMsg);
         }
 
 
@@ -54,7 +54,7 @@ namespace InprovePlan.Controllers
                 return ReturnResult(Result.Failure("RabbitMq异常"));
             }
 
-            return ReturnResult(Result.Seccess);
+            return ReturnResult(Result.SeccessWithNoMsg);
         }
 
     }

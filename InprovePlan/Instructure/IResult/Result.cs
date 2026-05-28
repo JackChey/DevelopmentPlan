@@ -33,6 +33,8 @@ namespace Instructure.IResult
             Message = message,
         };
 
+        public static Result SeccessWithNoMsg => new Result(ResultStatus.Ok);
+
         internal static IReadOnlyList<string>? NormalizeErrors(IEnumerable<string> errors) => errors.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct().ToArray();
 
         public static Result Invalid(params string[] errors) => new Result(ResultStatus.Invalid, NormalizeErrors(errors));

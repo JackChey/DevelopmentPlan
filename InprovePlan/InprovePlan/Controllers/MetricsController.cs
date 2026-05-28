@@ -14,7 +14,7 @@ namespace InprovePlan.Controllers
     public class MetricsController(IPrometheusQueryService _prometheus) : BaseController
     {
         /// <summary>
-        /// P50查询
+        /// P50查询,返回以 ms 为单位
         /// </summary>
         /// <returns></returns>
         [HttpGet("P50")]
@@ -27,7 +27,7 @@ namespace InprovePlan.Controllers
                 return ReturnResult(Result.Failure("获取 Prometheus P50失败"));
             }
 
-            if (p50Ms is double.NaN)
+            if (double.IsNaN(p50Ms!.Value))
             {
                 return ReturnResult(Result.Seccess("流量数据未达标,请稍等再试"));
             }
@@ -36,7 +36,7 @@ namespace InprovePlan.Controllers
         }
 
         /// <summary>
-        /// P90查询
+        /// P90查询,返回以 ms 为单位
         /// </summary>
         /// <returns></returns>
         [HttpGet("P90")]
@@ -49,7 +49,7 @@ namespace InprovePlan.Controllers
                 return ReturnResult(Result.Failure("获取 Prometheus P90失败"));
             }
 
-            if (p90Ms is double.NaN)
+            if (double.IsNaN(p90Ms!.Value))
             {
                 return ReturnResult(Result.Seccess("流量数据未达标,请稍等再试"));
             }
@@ -59,7 +59,7 @@ namespace InprovePlan.Controllers
 
 
         /// <summary>
-        /// P95查询
+        /// P95查询,返回以 ms 为单位
         /// </summary>
         /// <returns></returns>
         [HttpGet("P95")]
@@ -72,7 +72,7 @@ namespace InprovePlan.Controllers
                 return ReturnResult(Result.Failure("获取 Prometheus P95失败"));
             }
 
-            if (p95Ms is double.NaN)
+            if (double.IsNaN(p95Ms!.Value))
             {
                 return ReturnResult(Result.Seccess("流量数据未达标,请稍等再试"));
             }

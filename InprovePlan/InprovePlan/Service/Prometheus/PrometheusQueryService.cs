@@ -29,7 +29,7 @@ namespace InprovePlan.Service.Prometheus
             // 4) 乘以 1000 把秒转换为毫秒
             // 5) 排除 /metrics，避免被 Prometheus 自身抓取流量干扰
             var promQl = $$"""
-histogram_quantile(
+1000 * histogram_quantile(
   0.50,
   sum(rate({{_promSeetings.Value.HttpDurationBucketMetric}}{http_route!="/metrics"}[5m])) by (le)
 )
@@ -53,7 +53,7 @@ histogram_quantile(
             // 4) 乘以 1000 把秒转换为毫秒
             // 5) 排除 /metrics，避免被 Prometheus 自身抓取流量干扰
             var promQl = $$"""
-histogram_quantile(
+1000 * histogram_quantile(
   0.90,
   sum(rate({{_promSeetings.Value.HttpDurationBucketMetric}}{http_route!="/metrics"}[5m])) by (le)
 )
@@ -77,7 +77,7 @@ histogram_quantile(
             // 4) 乘以 1000 把秒转换为毫秒
             // 5) 排除 /metrics，避免被 Prometheus 自身抓取流量干扰
             var promQl = $$"""
-histogram_quantile(
+1000 * histogram_quantile(
   0.95,
   sum(rate({{_promSeetings.Value.HttpDurationBucketMetric}}{http_route!="/metrics"}[5m])) by (le)
 )
