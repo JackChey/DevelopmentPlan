@@ -113,10 +113,6 @@ namespace InprovePlan.Service.Prometheus
                         Reason: $"prometheus_http_error:{(int)resp.StatusCode}");
                 }
 
-
-                // 非 2xx 直接抛异常：上层可统一捕获并记录
-                resp.EnsureSuccessStatusCode();
-
                 // 解析 Prometheus JSON 返回
                 // 典型结构：
                 // {

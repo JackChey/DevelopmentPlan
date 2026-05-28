@@ -153,7 +153,7 @@ namespace InprovePlan
             var dbConnectionStr = configuration.GetSection("ConnectionStrings:DBConnection");
             var rediaConnectionStr = configuration.GetSection("ConnectionStrings:RedisConnection");
             var rabbitMqConnectionStr = configuration.GetSection("ConnectionStrings:RabbitMqConnection");
-            var prometheusSeetings = configuration.GetSection("PrometheusSeetings");
+            var prometheusSeetings = configuration.GetSection("PrometheusSettings");
 
             services.Configure<DBConnection>(dbConnectionStr);
             services.Configure<RedisConnection>(rediaConnectionStr);
