@@ -97,6 +97,16 @@ namespace InprovePlan.Middlewares
         /// 场景：下游服务 5xx、超时、网络异常
         /// </summary>
         public const string InfraHttpFailed = "infra.http.failed";
+
+        /// <summary>
+        /// 系统抛出异常但是被处理
+        /// </summary>
+        public const string ExceptionHandled = "exception.handled";
+
+        /// <summary>
+        /// 系统抛出异常但是未被处理
+        /// </summary>
+        public const string ExceptionUnhandled = "exception.unhandled";
     }
 
     /// <summary>
@@ -147,59 +157,61 @@ namespace InprovePlan.Middlewares
                .ForContext("http", httpStart, destructureObjects: true)
                .Information("http.request.started");
 
-            try
+            // -------- 2) 执行后续管道 --------
+            await _next(ctx);
+
+            // 请求正常返回，停止计时
+            sw.Stop();
+
+            // 从 HttpContext.Items 获取鉴权信息（建议由前置中间件写入）
+            // 若未写入则 auth 为 null，这属于可接受状态
+            ctx.Items.TryGetValue("auth", out var auth);
+
+            // 获取请求信息
+            var httpEnd = new LogHttpRequestInfo()
             {
-                // -------- 2) 执行后续管道 --------
-                await _next(ctx);
+                Route = ctx.Request.Path,
+                Method = ctx.Request.Method,
+                StatusCode = ctx.Response.StatusCode,
+                ClientIp = ctx.Connection.RemoteIpAddress?.ToString() ?? "Unkown",
+                DurationMs = sw.Elapsed.TotalMilliseconds,
+            };
 
-                // 请求正常返回，停止计时
-                sw.Stop();
+            // -------- 3) 请求完成日志 --------
+            Log.ForContext("event", LogEvents.HttpRequestCompleted)
+               .ForContext("auth", auth, destructureObjects: true)
+               .ForContext("http", httpEnd, destructureObjects: true)
+               .Information("http.request.completed");
 
-                // 从 HttpContext.Items 获取鉴权信息（建议由前置中间件写入）
-                // 若未写入则 auth 为 null，这属于可接受状态
-                ctx.Items.TryGetValue("auth", out var auth);
+            //try
+            //{
+                
+            //}
+            //catch (Exception ex)
+            //{
+            //    // 后续管道发生异常，停止计时
+            //    sw.Stop();
 
-                // 获取请求信息
-                var httpEnd = new LogHttpRequestInfo()
-                {
-                    Route = ctx.Request.Path,
-                    Method = ctx.Request.Method,
-                    StatusCode = ctx.Response.StatusCode,
-                    ClientIp = ctx.Connection.RemoteIpAddress?.ToString() ?? "Unkown",
-                    DurationMs = sw.Elapsed.TotalMilliseconds,
-                };
+            //    //// 获取请求信息
+            //    //var httpFailed = new LogHttpRequestInfo()
+            //    //{
+            //    //    Route = ctx.Request.Path,
+            //    //    Method = ctx.Request.Method,
+            //    //    StatusCode = ctx.Response.StatusCode,
+            //    //    ClientIp = ctx.Connection.RemoteIpAddress?.ToString() ?? "Unkown",
+            //    //    DurationMs = sw.Elapsed.TotalMilliseconds,
+            //    //};
 
-                // -------- 3) 请求完成日志 --------
-                Log.ForContext("event", LogEvents.HttpRequestCompleted)
-                   .ForContext("auth", auth, destructureObjects: true)
-                   .ForContext("http", httpEnd, destructureObjects: true)
-                   .Information("http.request.completed");
-            }
-            catch (Exception ex)
-            {
-                // 后续管道发生异常，停止计时
-                sw.Stop();
+            //    //// -------- 4) 请求失败日志 --------
+            //    //// 这里使用 Error，并附带异常对象，保留完整堆栈
+            //    //// StatusCode 使用 500 作为默认失败状态（如果后续有统一异常处理中间件改写响应，不影响日志排障价值）
+            //    //Log.ForContext("event", LogEvents.HttpRequestFailed)
+            //    //   .ForContext("http", httpFailed, destructureObjects: true)
+            //    //   .Error(ex, "http.request.failed");
 
-                // 获取请求信息
-                var httpFailed = new LogHttpRequestInfo()
-                {
-                    Route = ctx.Request.Path,
-                    Method = ctx.Request.Method,
-                    StatusCode = ctx.Response.StatusCode,
-                    ClientIp = ctx.Connection.RemoteIpAddress?.ToString() ?? "Unkown",
-                    DurationMs = sw.Elapsed.TotalMilliseconds,
-                };
-
-                // -------- 4) 请求失败日志 --------
-                // 这里使用 Error，并附带异常对象，保留完整堆栈
-                // StatusCode 使用 500 作为默认失败状态（如果后续有统一异常处理中间件改写响应，不影响日志排障价值）
-                Log.ForContext("event", LogEvents.HttpRequestFailed)
-                   .ForContext("http", httpFailed, destructureObjects: true)
-                   .Error(ex, "http.request.failed");
-
-                // 继续抛出异常，交给全局异常处理中间件处理响应
-                throw;
-            }
+            //    // 继续抛出异常，交给全局异常处理中间件处理响应
+            //    //throw new Exception(LogEvents.HttpRequestFailed, ex);
+            //}
         }
 
     }

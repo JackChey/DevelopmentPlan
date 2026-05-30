@@ -1,15 +1,10 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
-
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
-using Instructure.IResult;
-using Microsoft.OpenApi.Models;
-using Instructure.Response;
-using InprovePlan.Helper;
-using Serilog;
-using Microsoft.Extensions.Logging;
+﻿using InprovePlan.Helper;
+using InprovePlan.Middlewares;
 using InprovePlan.SystemLogs;
+using Instructure.IResult;
+using Instructure.Response;
+using Microsoft.AspNetCore.Diagnostics;
+using System.Diagnostics;
 
 namespace InprovePlan.Exceptions
 {
@@ -61,11 +56,11 @@ namespace InprovePlan.Exceptions
             // 若异常状态大于等于 500 ,则代表重大异常,需要进行记录,
             if (statusCode >= 500)
             {
-                _logger.LogError(exception, "Event:{@event},Http:{@http},Auth:{@auth},ErrorCode:{@errorcode},Unhandled bussiness exception.TraceId={@traceId},Msg:{@msg}", "http.request.failed", http, auth,errorcode, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Unhandled_Exception");
+                _logger.LogError(exception, "Event:{@event},Http:{@http},Auth:{@auth},ErrorCode:{@errorcode},Unhandled bussiness exception.TraceId={@traceId},Msg:{@msg}", LogEvents.ExceptionUnhandled, http, auth,errorcode, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Unhandled_Exception");
             }
             else
             {
-                _logger.LogWarning(exception, "Event:{@event},Http:{@http},Auth:{@auth},Handled bussiness exception.TraceId={@traceId},Msg:{@msg}", "http.request.exceptionhandled", http, auth, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Handled_Exception");
+                _logger.LogWarning(exception, "Event:{@event},Http:{@http},Auth:{@auth},Handled bussiness exception.TraceId={@traceId},Msg:{@msg}", LogEvents.ExceptionHandled, http, auth, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Handled_Exception");
             }
 
             var response = ApiResponse<object?>.Fail(errorcode, message, traceId, details);

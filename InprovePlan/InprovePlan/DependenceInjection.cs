@@ -3,6 +3,7 @@ using InprovePlan.Filters;
 using InprovePlan.IService.Jwt;
 using InprovePlan.IService.Prometheus;
 using InprovePlan.Prometheus;
+using InprovePlan.Prometheus.AppMetrics;
 using InprovePlan.Service.Jwt;
 using InprovePlan.Service.Prometheus;
 using InprovePlan.SystemLogs.LogEvents;
@@ -29,6 +30,8 @@ namespace InprovePlan
         /// <returns></returns>
         public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
         {
+            
+
             // 注册 AutoMapper
             services.AddAutoMapper(cfg =>
             {
@@ -109,6 +112,9 @@ namespace InprovePlan
                     // 处理身份检验失败
                     OnChallenge = async context =>
                     {
+                        // 这里加：401 计数
+                        AppCustomMetrics.AuthAccessUnauthorizedTotal.Inc();
+
                         // 阻止 401 纯文本响应
                         context.HandleResponse();
 
@@ -126,6 +132,9 @@ namespace InprovePlan
                     // 处理未授权
                     OnForbidden = async context =>
                     {
+                        // 这里加：403 计数
+                        AppCustomMetrics.AuthAccessForbiddenTotal.Inc();
+
                         context.Response.StatusCode = StatusCodes.Status403Forbidden;
                         context.Response.ContentType = "application/json; charset=utf-8";
 

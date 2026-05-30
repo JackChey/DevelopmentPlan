@@ -34,7 +34,7 @@ namespace InprovePlan.Controllers
                 return ReturnResult(Result.Seccess("当前时间窗口样本不足，请稍后重试"));
             }
 
-            return ReturnResult(new Result<double>(p50.Value.Value));
+            return ReturnResult(new Result<MetricQueryResult>(p50));
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace InprovePlan.Controllers
                 return ReturnResult(Result.Seccess("当前时间窗口样本不足，请稍后重试"));
             }
 
-            return ReturnResult(new Result<double>(p90.Value.Value));
+            return ReturnResult(new Result<MetricQueryResult>(p90));
         }
 
 
@@ -83,7 +83,7 @@ namespace InprovePlan.Controllers
                 return ReturnResult(Result.Seccess("当前时间窗口样本不足，请稍后重试"));
             }
 
-            return ReturnResult(new Result<double>(p95.Value.Value));
+            return ReturnResult(new Result<MetricQueryResult>(p95));
         }
     }
 }

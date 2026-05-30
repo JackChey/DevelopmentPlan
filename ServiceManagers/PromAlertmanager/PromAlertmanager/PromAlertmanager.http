@@ -1,0 +1,6 @@
+@PromAlertmanager_HostAddress = http://localhost:5141
+
+GET {{PromAlertmanager_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

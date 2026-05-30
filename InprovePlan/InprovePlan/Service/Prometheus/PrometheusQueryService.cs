@@ -1,5 +1,7 @@
-﻿using InprovePlan.IService.Prometheus;
+﻿using InprovePlan.Exceptions;
+using InprovePlan.IService.Prometheus;
 using InprovePlan.Prometheus;
+using InprovePlan.Prometheus.AppMetrics;
 using Microsoft.Extensions.Options;
 using Prometheus;
 using System.Globalization;
@@ -106,12 +108,15 @@ namespace InprovePlan.Service.Prometheus
                 // 查询失败：HTTP 非 2xx
                 if (!resp.IsSuccessStatusCode)
                 {
-                    return new MetricQueryResult(
-                        Success: false,
-                        HasData: false,
-                        Value: null,
-                        Reason: $"prometheus_http_error:{(int)resp.StatusCode}");
+                    var reason = $"prometheus_http_error:{(int)resp.StatusCode}";
+                    AppCustomMetrics.PrometheusQueryFailTotal
+                        .WithLabels(AppCustomMetrics.NormalizePromReason(reason))
+                        .Inc();
+
+                    return new MetricQueryResult(false, false, null, reason);
                 }
+
+               
 
                 // 解析 Prometheus JSON 返回
                 // 典型结构：
@@ -128,9 +133,11 @@ namespace InprovePlan.Service.Prometheus
                 var status = root.GetProperty("status").GetString();
                 if (!string.Equals(status, "success", StringComparison.OrdinalIgnoreCase))
                 {
-                    var reason = root.TryGetProperty("error", out var err)
-                        ? err.GetString()
-                        : "prometheus_query_failed";
+                    var reason = root.TryGetProperty("error", out var err) ? err.GetString() : "prometheus_query_failed";
+                    AppCustomMetrics.PrometheusQueryFailTotal
+                        .WithLabels(AppCustomMetrics.NormalizePromReason(reason))
+                        .Inc();
+
                     return new MetricQueryResult(false, false, null, reason);
                 }
 
@@ -176,11 +183,16 @@ namespace InprovePlan.Service.Prometheus
             }
             catch (OperationCanceledException)
             {
-                return new MetricQueryResult(false, false, null, "request_canceled");
+               return new MetricQueryResult(false, false, null, "prome_request_canceled");
             }
             catch (Exception ex)
             {
-                return new MetricQueryResult(false, false, null, $"exception:{ex.GetType().Name}");
+                var reason = $"exception:{ex.GetType().Name}";
+                AppCustomMetrics.PrometheusQueryFailTotal
+                    .WithLabels(AppCustomMetrics.NormalizePromReason(reason))
+                    .Inc();
+
+                throw new Exception("prome_request_failed", ex);
             }
         }
     }

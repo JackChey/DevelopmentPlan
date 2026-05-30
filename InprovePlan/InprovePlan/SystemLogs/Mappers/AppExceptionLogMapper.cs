@@ -49,6 +49,7 @@ namespace InprovePlan.SystemLogs.Mappers
                     Message = e.Exception?.Message,
                     Stack = e.Exception?.StackTrace ,
                     Type = e.Exception?.GetType().ToString(),
+                    SourceContext = GetString(e, "SourceContext") ?? string.Empty,
                 },
                 Tags = GetStringArray(e, "tags"),
              

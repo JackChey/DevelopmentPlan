@@ -24,5 +24,12 @@
         /// 调用堆栈
         /// </summary>
         public string? Stack { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 异常来源
+        /// </summary>
+        public string? SourceContext { get; set; } = string.Empty;
+
+        
     }
 }
