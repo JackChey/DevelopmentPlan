@@ -4,16 +4,23 @@ using InprovePlan.IService.Jwt;
 using InprovePlan.IService.Prometheus;
 using InprovePlan.Prometheus;
 using InprovePlan.Prometheus.AppMetrics;
+using InprovePlan.Service;
 using InprovePlan.Service.Jwt;
 using InprovePlan.Service.Prometheus;
 using InprovePlan.SystemLogs.LogEvents;
+using Instructure.Data;
+using Instructure.Interfaces;
 using Instructure.Response;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Reflection;
 using System.Text;
+using Instructure.Interceptors;
 
 namespace InprovePlan
 {
@@ -30,8 +37,6 @@ namespace InprovePlan
         /// <returns></returns>
         public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
         {
-            
-
             // 注册 AutoMapper
             services.AddAutoMapper(cfg =>
             {
@@ -41,6 +46,8 @@ namespace InprovePlan
             services.ConfigEnvironment(configuration);
 
             services.AddInfranstructureServices(configuration);
+
+            services.ConfigDbContext(configuration);
 
             return services;
         }
@@ -248,6 +255,36 @@ namespace InprovePlan
             });
 
             services.AddHostedService<PrometheusMetricStartupCheck>();
+
+            return services;
+        }
+
+        /// <summary>
+        /// 配置 数据库
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IServiceCollection ConfigDbContext(this IServiceCollection services, IConfiguration configuration)
+        {
+            // 注册当前用户
+            services.AddScoped<IUser, CurrentUser>();
+
+            // 获取数据库链接字符串
+            var connectionstring = configuration.GetConnectionString("AppDbConnectionStrings");
+
+            // 注册拦截器 审计数据
+            services.AddScoped<ISaveChangesInterceptor, AuditEntityInterceptor>();
+
+            // 配置数据库上下文
+            services.AddDbContext<AppDbContext>((sp, options) =>
+            {
+                // 添加拦截器
+                options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+
+                // 使用mysql作为数据库并自动检测版本
+                options.UseMySql(connectionstring, ServerVersion.AutoDetect(connectionstring));
+            });
 
             return services;
         }
