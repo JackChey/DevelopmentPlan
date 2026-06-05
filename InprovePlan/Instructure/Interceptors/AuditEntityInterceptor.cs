@@ -60,11 +60,6 @@ namespace Instructure.Interceptors
                     continue;
                 }
 
-                if (currentUser is null)
-                {
-                    return;
-                }
-
                 // 创建审计信息
                 if (item.State is EntityState.Added)
                 {
