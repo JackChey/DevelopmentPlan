@@ -51,6 +51,27 @@ namespace Instructure.Interceptors
                 return;
             }
 
+            // 获取新增ID
+            foreach (var item in context.ChangeTracker.Entries<AppAuditEntity>())
+            {
+                // 不是新增则跳过
+                if (item.State is not EntityState.Added || item.Entity.Id != 0)
+                {
+                    continue;
+                }
+
+                if (currentUser is null)
+                {
+                    return;
+                }
+
+                // 创建审计信息
+                if (item.State is EntityState.Added)
+                {
+                    item.Entity.Id = idGenerator.NewId();
+                }
+            }
+
             // 审计创建时间
             foreach (var item in context.ChangeTracker.Entries<AppAuditEntity>())
             {
@@ -99,26 +120,7 @@ namespace Instructure.Interceptors
                 }
             }
 
-            // 获取新增ID
-            foreach (var item in context.ChangeTracker.Entries<AppAuditWithUserEntity>())
-            {
-                // 不是新增则跳过
-                if (item.State is not EntityState.Added || item.Entity.Id != 0)
-                {
-                    continue;
-                }
-
-                if (currentUser is null)
-                {
-                    return;
-                }
-
-                // 创建审计信息
-                if (item.State is EntityState.Added)
-                {
-                    item.Entity.Id = idGenerator.NewId();
-                }
-            }
+            
         }
     }
 }
