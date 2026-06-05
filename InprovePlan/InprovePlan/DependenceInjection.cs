@@ -275,6 +275,7 @@ namespace InprovePlan
 
             // 注册拦截器 审计数据
             services.AddScoped<ISaveChangesInterceptor, AuditEntityInterceptor>();
+            services.AddTransient<IIdGenerator, SnowflakeIdGenerator>();
 
             // 配置数据库上下文
             services.AddDbContext<AppDbContext>((sp, options) =>

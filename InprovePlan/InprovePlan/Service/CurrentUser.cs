@@ -27,7 +27,7 @@ namespace InprovePlan.Service
                     return null;
                 }
 
-                return Convert.ToInt64(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                return string.IsNullOrEmpty(User.FindFirstValue(ClaimTypes.NameIdentifier)) ? null : Convert.ToInt64(User.FindFirstValue(ClaimTypes.NameIdentifier));
             }
         }
     }

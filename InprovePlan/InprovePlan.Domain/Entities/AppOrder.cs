@@ -105,7 +105,7 @@ namespace InprovePlan.Domain.Entities
         public AppOrderStatus OrderStatus { get; set; }
 
         /// <summary>
-        /// 收货地址ID
+        /// 收货地址ID,关联后续地址Id,地址实体留待后续完善
         /// </summary>
         public long AddressId { get; set; }
 
