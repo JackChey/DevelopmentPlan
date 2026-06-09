@@ -28,7 +28,7 @@ namespace Instructure.IResult
                 throw new InvalidOperationException("Success result cannot contain errors.");
         }
 
-        public static Result Seccess(string? message ) => new Result(ResultStatus.Ok)
+        public static Result Success(string? message ) => new Result(ResultStatus.Ok)
         {
             Message = message,
         };
@@ -54,11 +54,11 @@ namespace Instructure.IResult
     /// </summary>
     public class Result<T> : IResult<T>
     {
-        public ResultStatus Status { get; }
+        public ResultStatus Status { get; set; }
 
         public string? Message { get; set; }
 
-        public IReadOnlyList<string>? Errors { get; }
+        public IReadOnlyList<string>? Errors { get; set; }
 
         public bool IsSuccess => Status.Equals(ResultStatus.Ok);
 
@@ -81,7 +81,7 @@ namespace Instructure.IResult
                 throw new InvalidOperationException("Success result cannot contain errors.");
         }
 
-        public static Result<T> Seccess(T value) => new Result<T>(value);
+        public static Result<T> Success(T value) => new Result<T>(value);
 
         public static Result<T> Invalid(params string[] errors) => new Result<T>(ResultStatus.Invalid, Result.NormalizeErrors(errors));
         public static Result<T> Unauthorized(params string[] errors) => new Result<T>(ResultStatus.Unauthorized, Result.NormalizeErrors(errors));
@@ -98,6 +98,20 @@ namespace Instructure.IResult
         result.Status == ResultStatus.Ok
             ? throw new InvalidOperationException("Cannot convert successful non-generic Result to Result<T> without value.")
             : new Result<T>(result.Status, result.Errors);
+
+        /// <summary>
+        /// 隐式转换
+        /// 从带泛型结果转为不带泛型结果
+        /// </summary>
+        /// <param name="result"></param>
+        public static implicit operator Result<T>(Result result)
+        {
+            return new Result<T>(default(T))
+            {
+                Status = result.Status,
+                Errors = result.Errors,
+            };
+        }
     }
 }
 

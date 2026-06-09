@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using InprovePlan.ModeDto;
-using InprovePlan.Model;
+using InprovePlan.Domain.Entities;
+using InprovePlan.UserCase.AppUsers;
 
 namespace InprovePlan.Extension
 {

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -10,18 +10,22 @@
 
   <ItemGroup>
     <Compile Remove="logs\**" />
+    <Compile Remove="UserCase\**" />
     <Content Remove="logs\**" />
+    <Content Remove="UserCase\**" />
     <EmbeddedResource Remove="logs\**" />
+    <EmbeddedResource Remove="UserCase\**" />
     <None Remove="logs\**" />
+    <None Remove="UserCase\**" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="acpjczzb.kle~" />
-    <None Remove="Service\Jwt\4guerahx.325~" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <PackageReference Include="Bogus" Version="35.6.5" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.26" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.27">
       <PrivateAssets>all</PrivateAssets>
@@ -41,7 +45,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\InprovePlan.ShareKernel\InprovePlan.ShareKernel.csproj" />
+    <ProjectReference Include="..\InprovePlan.UserCase\InprovePlan.UserCase.csproj" />
     <ProjectReference Include="..\Instructure\Instructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Authorization\" />
   </ItemGroup>
 
 </Project>

@@ -1,8 +1,4 @@
-﻿using InprovePlan.FakeData;
-using Microsoft.AspNetCore.Http;
-using Serilog.Events;
-using System.Data;
-using System.Security.Claims;
+﻿using Serilog.Events;
 
 namespace InprovePlan.SystemLogs.Mappers
 {

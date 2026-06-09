@@ -10,6 +10,7 @@ using System.Reflection;
 
 using Prometheus;
 using InprovePlan.Middlewares;
+using InprovePlan.Data.Seeding;
 
 try
 {
@@ -110,6 +111,7 @@ try
         c.OperationFilter<AuthResponseOperationFilter>();
     });
 
+    builder.Services.AddScoped<AppDbContextDataSeeder>();
 
     var app = builder.Build();
 
@@ -164,6 +166,16 @@ try
 
     app.MapControllers();
 
+    if (app.Environment.IsDevelopment())
+    {
+        using var scope = app.Services.CreateScope();
+
+        var seeder = scope.ServiceProvider
+            .GetRequiredService<AppDbContextDataSeeder>();
+
+        await seeder.SeedAsync();
+    }
+
     app.Run();
 
 }
@@ -177,4 +189,9 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+/// <summary>
+/// 用于启用接口测试项目
+/// </summary>
+public partial class Program { }
 

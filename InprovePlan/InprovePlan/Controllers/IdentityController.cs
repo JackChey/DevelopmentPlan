@@ -1,8 +1,11 @@
-﻿using InprovePlan.IService.Jwt;
+﻿using InprovePlan.UserCase.AppUsers.Commands;
+using Instructure.Interfaces;
+using Instructure.Interfaces.Jwt;
 using Instructure.IResult;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using static InprovePlan.Controllers.UserController;
 
 namespace InprovePlan.Controllers
 {
@@ -11,54 +14,28 @@ namespace InprovePlan.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class IdentityController(IJwtService jwtService) : BaseController
+    public class IdentityController() : BaseController
     {
+       
+        /// <summary>
+        /// 用户登录请求信息
+        /// </summary>
+        /// <param name="UserName"></param>
+        /// <param name="Password"></param>
+        public record LoginUserRequest(string UserName, string Password);
+
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="userRequest"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost()]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] UserRequest userRequest)
+        public async Task<IActionResult> Login([FromBody] LoginUserRequest request)
         {
-            if (userRequest.userid <= 0)
-            {
-                return ReturnResult(new Result(ResultStatus.Invalid, new List<string>() { "用户ID未传或传值失败" }));
-            }
+            var result = await Sender.Send(new LoginAppUserCommand(request.UserName,request.Password));
 
-            if (string.IsNullOrEmpty(userRequest.password))
-            {
-                return ReturnResult(new Result(ResultStatus.Invalid, new List<string>() { "用户密码未传或传值失败" }));
-
-
-                //throw new ValidationException(new Dictionary<string, string[]>() { { "验证不通过", new string[] { "用户密码未传或传值失败" } } });
-
-                //return ReturnResult(new Result(ResultStatus.Invalid)
-                //{
-                //    Errors = new List<string>() { "用户密码未传或传值失败" },
-                //});
-            }
-
-            //if (password.Equals("123456789"))
-            //{
-            //    throw new ValidationException(new Dictionary<string, string[]>() { { "验证不通过", new string[] { "用户密码未传或传值失败" } } });
-
-            //    //return ReturnResult(new Result(ResultStatus.Invalid)
-            //    //{
-            //    //    Errors = new List<string>() { "用户密码未传或传值失败" },
-            //    //});
-            //}
-
-            //var token = await jwtService.GetAccessTokenAsync(userRequest.userid, userRequest.password);
-            var token =  jwtService.GetAccessToken(userRequest.userid, userRequest.password);
-
-            if (token is null)
-            {
-                return ReturnResult(Result.Failure(new string[] { "获取Token失败"}));
-            }
-
-            return ReturnResult(token);
+            return ReturnResult(result);
         }
     }
 }

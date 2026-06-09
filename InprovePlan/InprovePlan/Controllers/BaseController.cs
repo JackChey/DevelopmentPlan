@@ -3,6 +3,7 @@ using IResult = Instructure.IResult.IResult;
 using Instructure.IResult;
 using InprovePlan.Helper;
 using Instructure.Response;
+using MediatR;
 
 namespace InprovePlan.Controllers
 {
@@ -11,6 +12,11 @@ namespace InprovePlan.Controllers
     /// </summary>
     public class BaseController : ControllerBase
     {
+        /// <summary>
+        /// 获取MediatR发送器
+        /// </summary>
+        public ISender Sender => HttpContext.RequestServices.GetRequiredService<ISender>();
+
         /// <summary>
         /// 对返回结果的二次封装
         /// </summary>

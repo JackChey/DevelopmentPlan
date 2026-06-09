@@ -1,6 +1,8 @@
 ﻿using InprovePlan.Helper;
 using InprovePlan.Middlewares;
 using InprovePlan.SystemLogs;
+using InprovePlan.UserCase.Behaviors;
+using InprovePlan.UserCase.Exceptions;
 using Instructure.IResult;
 using Instructure.Response;
 using Microsoft.AspNetCore.Diagnostics;
@@ -35,10 +37,13 @@ namespace InprovePlan.Exceptions
         /// <param name="cancellationToken"></param>
         /// <returns>true表示已完成处理,false表示未完成处理</returns>
         /// <exception cref="NotImplementedException"></exception>
-        async ValueTask<bool> IExceptionHandler.TryHandleAsync(HttpContext httpContext, System.Exception exception, CancellationToken cancellationToken)
+        async ValueTask<bool> IExceptionHandler.TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
+            var showDetails = _env.IsDevelopment()
+    ||          _env.IsEnvironment("Testing");
+
             // 获取异常信息
-            var (resultstatus, errorcode, message, details) = Map(exception, _env.IsDevelopment());
+            var (resultstatus, errorcode, message, details) = Map(exception, showDetails);
             var traceId = Activity.Current?.Id ?? httpContext.TraceIdentifier;
             var statusCode = resultstatus.ToHttpStatusCode();
 
@@ -56,7 +61,7 @@ namespace InprovePlan.Exceptions
             // 若异常状态大于等于 500 ,则代表重大异常,需要进行记录,
             if (statusCode >= 500)
             {
-                _logger.LogError(exception, "Event:{@event},Http:{@http},Auth:{@auth},ErrorCode:{@errorcode},Unhandled bussiness exception.TraceId={@traceId},Msg:{@msg}", LogEvents.ExceptionUnhandled, http, auth,errorcode, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Unhandled_Exception");
+                _logger.LogError(exception, "Event:{@event},Http:{@http},Auth:{@auth},ErrorCode:{@errorcode},Unhandled bussiness exception.TraceId={@traceId},Msg:{@msg}", LogEvents.ExceptionUnhandled, http, auth, errorcode, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Unhandled_Exception");
             }
             else
             {
@@ -102,7 +107,7 @@ namespace InprovePlan.Exceptions
                 null
             ),
 
-            UnauthorizedAccessException => (
+            AuthorizationException => (
                 ResultStatus.Forbidden,
                 "forbidden",
                 "Forbidden",
@@ -117,12 +122,29 @@ namespace InprovePlan.Exceptions
             ),
 
             _ => (
-                ResultStatus.Error,
-                "internal_error",
-                isDevelopment ? ex.Message : "An unexpected error occurred.",
-                null
-            )
+                 ResultStatus.Error,
+                 "internal_error",
+                 isDevelopment
+                     ? GetFullExceptionMessage(ex)
+                     : "An unexpected error occurred.",
+                 null
+             )
         };
+
+        private static string GetFullExceptionMessage(Exception exception)
+        {
+            var messages = new List<string>();
+
+            var current = exception;
+
+            while (current is not null)
+            {
+                messages.Add(current.Message);
+                current = current.InnerException;
+            }
+
+            return string.Join(" --> ", messages);
+        }
 
         private static IEnumerable<string> FlattenValidationErrors(IDictionary<string, string[]> errors)
         {

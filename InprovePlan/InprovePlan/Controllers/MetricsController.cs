@@ -31,7 +31,7 @@ namespace InprovePlan.Controllers
             // 无数据窗口：流量太低/窗口内无样本
             if (!p50.HasData || p50.Value is null)
             {
-                return ReturnResult(Result.Seccess("当前时间窗口样本不足，请稍后重试"));
+                return ReturnResult(Result.Success("当前时间窗口样本不足，请稍后重试"));
             }
 
             return ReturnResult(new Result<MetricQueryResult>(p50));
@@ -55,7 +55,7 @@ namespace InprovePlan.Controllers
             // 无数据窗口：流量太低/窗口内无样本
             if (!p90.HasData || p90.Value is null)
             {
-                return ReturnResult(Result.Seccess("当前时间窗口样本不足，请稍后重试"));
+                return ReturnResult(Result.Success("当前时间窗口样本不足，请稍后重试"));
             }
 
             return ReturnResult(new Result<MetricQueryResult>(p90));
@@ -80,7 +80,7 @@ namespace InprovePlan.Controllers
             // 无数据窗口：流量太低/窗口内无样本
             if (!p95.HasData || p95.Value is null)
             {
-                return ReturnResult(Result.Seccess("当前时间窗口样本不足，请稍后重试"));
+                return ReturnResult(Result.Success("当前时间窗口样本不足，请稍后重试"));
             }
 
             return ReturnResult(new Result<MetricQueryResult>(p95));

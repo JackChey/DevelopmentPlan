@@ -1,26 +1,27 @@
 ﻿using InprovePlan.Connections;
 using InprovePlan.Filters;
-using InprovePlan.IService.Jwt;
 using InprovePlan.IService.Prometheus;
 using InprovePlan.Prometheus;
 using InprovePlan.Prometheus.AppMetrics;
 using InprovePlan.Service;
-using InprovePlan.Service.Jwt;
 using InprovePlan.Service.Prometheus;
 using InprovePlan.SystemLogs.LogEvents;
+using InprovePlan.UserCase;
 using Instructure.Data;
+using Instructure.Interceptors;
 using Instructure.Interfaces;
+using Instructure.Interfaces.Jwt;
 using Instructure.Response;
+using Instructure.Services.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Reflection;
 using System.Text;
-using Instructure.Interceptors;
 
 namespace InprovePlan
 {
@@ -48,6 +49,7 @@ namespace InprovePlan
             services.AddInfranstructureServices(configuration);
 
             services.ConfigDbContext(configuration);
+            services.AddUserCaselService();
 
             return services;
         }
@@ -76,7 +78,6 @@ namespace InprovePlan
             // 注册中间件Filter
             services.AddControllers(options =>
             {
-                options.Filters.Add<AppAuthorizationFilter>();
                 options.Filters.Add<AppActionFilter>();
             });
 
@@ -224,9 +225,6 @@ namespace InprovePlan
                 //.WriteTo.Sink(sink)
                 ;
             });
-
-
-
 
             return builder;
         }
