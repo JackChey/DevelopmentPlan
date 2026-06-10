@@ -52,7 +52,7 @@ namespace InprovePlan.Exceptions
             {
                 Route = httpContext.Request.Path,
                 Method = httpContext.Request.Method,
-                StatusCode = httpContext.Response.StatusCode,
+                StatusCode = statusCode,
                 ClientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "Unkown",
             };
 
@@ -65,7 +65,7 @@ namespace InprovePlan.Exceptions
             }
             else
             {
-                _logger.LogWarning(exception, "Event:{@event},Http:{@http},Auth:{@auth},Handled bussiness exception.TraceId={@traceId},Msg:{@msg}", LogEvents.ExceptionHandled, http, auth, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Handled_Exception");
+                _logger.LogWarning(exception, "Event:{@event},Http:{@http},Auth:{@auth},ErrorCode:{@errorcode},Handled bussiness exception.TraceId={@traceId},Msg:{@msg}", LogEvents.ExceptionHandled, http, auth, errorcode, Activity.Current?.Id ?? httpContext.TraceIdentifier, "Handled_Exception");
             }
 
             var response = ApiResponse<object?>.Fail(errorcode, message, traceId, details);

@@ -6,8 +6,8 @@ using Instructure.Paging;
 using Instructure.Sorting;
 using Instructure.Specification;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 /// <summary>
 /// EF Core 只读仓储实现。
@@ -111,7 +111,8 @@ public class EfReadRepository<TEntity> : IReadRepository<TEntity>
         if (pagingErrors.Count > 0)
         {
             var message = string.Join("；", pagingErrors.Select(x => x.Message));
-            throw new ValidationException(message);
+
+            throw new ValidationException(new Dictionary<string, string[]>() { { "分页信息异常", pagingErrors.Select(e => e.Message).ToArray() } });
         }
 
         // Count 查询只应用条件，不应用 Include、排序和分页。

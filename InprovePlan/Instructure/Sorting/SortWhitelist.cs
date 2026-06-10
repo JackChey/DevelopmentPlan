@@ -30,12 +30,12 @@ public sealed class SortWhitelist<TEntity>
 
         if (!_fields.ContainsKey(DefaultSortBy))
         {
-            throw new ValidationException($"默认排序字段 {DefaultSortBy} 不在排序白名单中。");
+            throw new ValidationException(new Dictionary<string, string[]>() { { "排序校验异常", new string[] { $"默认排序字段 {DefaultSortBy} 不在排序白名单中。" } } });
         }
 
         if (!_fields.ContainsKey(TieBreakerSortBy))
         {
-            throw new ValidationException($"兜底排序字段 {TieBreakerSortBy} 不在排序白名单中。");
+            throw new ValidationException(new Dictionary<string, string[]>() { { "排序校验异常", new string[] { $"兜底排序字段 {TieBreakerSortBy} 不在排序白名单中。" } } });
         }
     }
 

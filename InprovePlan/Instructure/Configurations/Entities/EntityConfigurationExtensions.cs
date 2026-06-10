@@ -29,6 +29,8 @@ namespace Instructure.Configurations.Entities // 实体配置类统一放在 Ent
 
             builder.Property(p => p.LastModifiedAt)
                 .HasColumnType("datetime(6)"); // 最近修改时间允许为空，因为新建后可能未修改。
+
+            builder.HasIndex(x => new { x.CreatedAt, x.Id }); // 便于按创建时间和Id主键追踪数据。
         }
 
         public static void ConfigureAuditWithUserEntity<TEntity>(this EntityTypeBuilder<TEntity> builder)
@@ -43,6 +45,8 @@ namespace Instructure.Configurations.Entities // 实体配置类统一放在 Ent
             builder.HasIndex(p => p.CreatedByUserId); // 便于按创建人追踪数据。
 
             builder.HasIndex(p => p.LastModifiedByUserId); // 便于按修改人审计数据。
+
+
         }
     }
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace InprovePlan.UserCase.Behaviors
+namespace Instructure.Exceptions
 {
     /// <summary>
     /// 系统基础异常
@@ -30,6 +30,8 @@ namespace InprovePlan.UserCase.Behaviors
     /// </summary>
     public sealed class ValidationException : AppException
     {
+        //public new string ErrorCode = "validate_failed";
+
         /// <summary>
         /// 异常信息集合
         /// </summary>
@@ -51,6 +53,8 @@ namespace InprovePlan.UserCase.Behaviors
     /// </summary>
     public sealed class NotFoundException : AppException
     {
+        //public new string ErrorCode = "resource_notfound";
+
         /// <summary>
         /// 传入异常信息
         /// </summary>
@@ -67,6 +71,8 @@ namespace InprovePlan.UserCase.Behaviors
     /// </summary>
     public sealed class BusinessException : AppException
     {
+        //public new string ErrorCode = "business_exception";
+
         /// <summary>
         /// 传入异常信息
         /// </summary>

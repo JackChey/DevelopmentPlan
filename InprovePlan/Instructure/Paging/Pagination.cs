@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Instructure.Paging;
 
@@ -70,7 +65,7 @@ public sealed class Pagination
 
         if (skip > int.MaxValue)
         {
-            throw new ValidationException("分页偏移量过大，请缩小 pageIndex 或 pageSize。");
+            throw new ValidationException(new Dictionary<string, string[]>() { { "分页偏移量异常", new string[] { "请缩小 pageIndex 或 pageSize。" } } });
         }
 
         return (int)skip;

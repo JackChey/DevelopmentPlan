@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using MediatR;
-using ValidationException = InprovePlan.UserCase.Behaviors.ValidationException;
+
 
 namespace InprovePlan.UserCase.Behaviors;
 
