@@ -7,7 +7,7 @@ using Instructure.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace InprovePlan.ApiTests;
+namespace InprovePlan.ApiTests.AppUsers;
 
 /// <summary>
 /// AppUserController API 测试。

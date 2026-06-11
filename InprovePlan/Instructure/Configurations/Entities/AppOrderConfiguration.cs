@@ -65,6 +65,10 @@ namespace Instructure.Configurations.Entities // 实体配置类统一放在 Ent
                 .HasConversion<int>() // 订单状态枚举按 int 入库。
                 .IsRequired(); // 订单状态不能为空。
 
+            builder.Property(p => p.Cancelled)
+                .HasConversion<int>() // 订单是否取消状态,按 int 入库。
+                .IsRequired(); // 订单状态不能为空。
+
             builder.HasIndex(p => p.OrderStatus); // 便于后台按订单状态筛选。
 
             builder.Property(p => p.AddressId)

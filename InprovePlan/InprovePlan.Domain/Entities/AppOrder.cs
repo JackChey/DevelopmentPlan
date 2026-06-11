@@ -110,6 +110,11 @@ namespace InprovePlan.Domain.Entities
         public long AddressId { get; set; }
 
         /// <summary>
+        /// 订单是否取消
+        /// </summary>
+        public bool Cancelled { get; set; }
+
+        /// <summary>
         /// 导航属性,管理商品
         /// </summary>
         public Product Product { get; set; } = null!;

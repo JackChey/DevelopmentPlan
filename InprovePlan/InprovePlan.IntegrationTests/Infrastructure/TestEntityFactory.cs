@@ -35,4 +35,68 @@ public static class TestEntityFactory
             CreatedAt = DateTimeOffset.UtcNow
         };
     }
+
+    /// <summary>
+    /// 创建商品实体。
+    /// </summary>
+    public static Product CreateProduct(
+        IIdGenerator idGenerator,
+        string productCode,
+        string productName,
+        int productTypeId = 1,
+        AppProductStatus status = AppProductStatus.Enable,
+        decimal unitPrice = 99.99m,
+        string currency = "CNY")
+    {
+        return new Product
+        {
+            Id = idGenerator.NewId(),
+            ProductCode = productCode,
+            ProductName = productName,
+            ProductDescription = "符合 ProductConfiguration 长度要求的商品描述。",
+            ProductTypeId = productTypeId,
+            ProductStatus = status,
+            UnitPrice = Math.Round(unitPrice, 2),
+            Currency = currency.ToUpperInvariant(),
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// 创建订单实体。
+    /// 订单会保存商品快照，避免商品后续变化影响历史订单。
+    /// </summary>
+    public static AppOrder CreateOrder(
+        IIdGenerator idGenerator,
+        AppUser user,
+        Product product,
+        string orderNo,
+        decimal quantity = 1.000m,
+        long addressId = 10001,
+        AppOrderStatus status = AppOrderStatus.Addition,
+        bool cancelled = false,
+        DateTimeOffset? occurredTime = null)
+    {
+        var order = new AppOrder
+        {
+            Id = idGenerator.NewId(),
+            OrderNo = orderNo,
+            ProductId = product.Id,
+            ProductName = product.ProductName,
+            ProductCode = product.ProductCode,
+            Currency = product.Currency,
+            UnitPrice = product.UnitPrice,
+            Quantity = Math.Round(quantity, 3),
+            UserId = user.Id,
+            OccurredTime = occurredTime ?? DateTimeOffset.UtcNow,
+            OrderStatus = status,
+            Cancelled = cancelled,
+            AddressId = addressId,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        order.RecalculateTotalAmount();
+
+        return order;
+    }
 }
