@@ -2,6 +2,7 @@
 
 using InprovePlan.Domain.BaseEntities;
 using Instructure.Data;
+using Instructure.OffsetLimiting;
 using Instructure.Paging;
 using Instructure.Sorting;
 using Instructure.Specification;
@@ -174,5 +175,48 @@ public class EfReadRepository<TEntity> : IReadRepository<TEntity>
         return await DbSet
             .AsNoTracking()
             .FirstOrDefaultAsync(predicate, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public virtual async Task<IReadOnlyList<TEntity>> ListAsync(
+        ISpecification<TEntity> specification,
+        OffsetLimit offsetLimit,
+        SortQuery sortQuery,
+        SortWhitelist<TEntity> sortWhitelist,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(specification);
+        ArgumentNullException.ThrowIfNull(offsetLimit);
+        ArgumentNullException.ThrowIfNull(sortQuery);
+        ArgumentNullException.ThrowIfNull(sortWhitelist);
+
+        var errors = offsetLimit.Validate();
+
+        if (errors.Count > 0)
+        {
+            var message = string.Join("；", errors.Select(error => error.Message));
+
+            throw new ValidationException(
+                new Dictionary<string, string[]>
+                {
+                    ["OffsetLimit"] = errors
+                        .Select(error => $"{error.Field}: {error.Message}")
+                        .ToArray()
+                },
+                message);
+        }
+
+        var query = ApplySpecification(
+            specification,
+            includeRelations: true);
+
+        query = query.ApplySafeSorting(
+            sortQuery,
+            sortWhitelist);
+
+        return await query
+            .Skip(offsetLimit.Offset)
+            .Take(offsetLimit.Limit)
+            .ToListAsync(cancellationToken);
     }
 }

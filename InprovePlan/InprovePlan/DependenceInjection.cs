@@ -273,6 +273,8 @@ namespace InprovePlan
 
             // 注册拦截器 审计数据
             services.AddScoped<ISaveChangesInterceptor, AuditEntityInterceptor>();
+            services.AddScoped<QueryCounterInterceptor>();
+
             services.AddTransient<IIdGenerator, SnowflakeIdGenerator>();
 
             // 配置数据库上下文
@@ -280,6 +282,8 @@ namespace InprovePlan
             {
                 // 添加拦截器
                 options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+
+                options.AddInterceptors(sp.GetRequiredService<QueryCounterInterceptor>());
 
                 // 使用mysql作为数据库并自动检测版本
                 options.UseMySql(connectionstring, ServerVersion.AutoDetect(connectionstring));

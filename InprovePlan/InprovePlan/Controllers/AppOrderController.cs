@@ -165,4 +165,18 @@ public class AppOrderController() : BaseController
 
         return ReturnResult(result);
     }
+
+    /// <summary>
+    /// 查询订单。用于测试 N+1 问题
+    /// </summary>
+    [HttpGet("GetTest")]
+    public async Task<IActionResult> GetTest(
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new GetAppOrderTestQuery(),
+            cancellationToken);
+
+        return ReturnResult(result);
+    }
 }

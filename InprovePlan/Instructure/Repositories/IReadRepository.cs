@@ -1,6 +1,7 @@
 ﻿namespace Instructure.Repositories;
 
 using InprovePlan.Domain.BaseEntities;
+using Instructure.OffsetLimiting;
 using Instructure.Paging;
 using Instructure.Sorting;
 using Instructure.Specification;
@@ -98,4 +99,25 @@ public interface IReadRepository<TEntity>
     Task<TEntity?> FirstOrDefaultAsNoTrackingAsync(
     Expression<Func<TEntity, bool>> predicate,
     CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 按 Offset/Limit 查询列表。
+    ///
+    /// 适用场景：
+    /// - 精确区间读取。
+    /// - 批处理读取。
+    /// - 不适合 PageIndex/PageSize 的查询窗口。
+    ///
+    /// 生产约束：
+    /// 1. Specification 负责 Where 条件。
+    /// 2. SortWhitelist 负责排序字段白名单。
+    /// 3. OffsetLimit 负责 Skip/Take 参数。
+    /// 4. 排序、Skip、Take 必须在数据库侧执行。
+    /// </summary>
+    Task<IReadOnlyList<TEntity>> ListAsync(
+        ISpecification<TEntity> specification,
+        OffsetLimit offsetLimit,
+        SortQuery sortQuery,
+        SortWhitelist<TEntity> sortWhitelist,
+        CancellationToken cancellationToken = default);
 }

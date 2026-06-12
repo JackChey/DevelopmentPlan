@@ -1,12 +1,7 @@
-﻿using Instructure.Interfaces;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using InprovePlan.Domain.BaseEntities;
+using Instructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using InprovePlan.Domain.BaseEntities;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Instructure.Interceptors
 {
