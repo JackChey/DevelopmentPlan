@@ -107,6 +107,10 @@ public class EfReadRepository<TEntity> : IReadRepository<TEntity>
         ArgumentNullException.ThrowIfNull(sortQuery);
         ArgumentNullException.ThrowIfNull(sortWhitelist);
 
+        DbContext.ChangeTracker.Clear();
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
         var pagingErrors = pagination.Validate();
 
         if (pagingErrors.Count > 0)
@@ -137,6 +141,14 @@ public class EfReadRepository<TEntity> : IReadRepository<TEntity>
             .Skip(pagination.GetSkipCount())
             .Take(pagination.PageSize)
             .ToListAsync(cancellationToken);
+
+        sw.Stop();
+
+        var trackedCount = DbContext.ChangeTracker.Entries().Count();
+
+        Console.WriteLine($"Count={items.Count}");
+        Console.WriteLine($"TrackedCount={trackedCount}");
+        Console.WriteLine($"耗时={sw.ElapsedMilliseconds}");
 
         return PagedResult<TEntity>.Create(
             items,
@@ -214,9 +226,11 @@ public class EfReadRepository<TEntity> : IReadRepository<TEntity>
             sortQuery,
             sortWhitelist);
 
-        return await query
+        var result = await  query
             .Skip(offsetLimit.Offset)
             .Take(offsetLimit.Limit)
             .ToListAsync(cancellationToken);
+
+        return result;
     }
 }

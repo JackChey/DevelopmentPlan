@@ -1,22 +1,12 @@
-﻿using FluentValidation;
-using InprovePlan.Domain.BaseEntities;
-using InprovePlan.Domain.Entities;
+﻿using InprovePlan.Domain.Entities;
 using InprovePlan.ShareKernel.Messaging;
-using InprovePlan.UserCase.AppUsers.Queries;
-using InprovePlan.UserCase.Common.Attributes;
 using Instructure.Interceptors;
-using Instructure.Interfaces;
 using Instructure.IResult;
-using Instructure.OffsetLimiting;
 using Instructure.Paging;
 using Instructure.Repositories;
 using Instructure.Sorting;
 using Instructure.Sorting.SortWhitelists;
 using Instructure.Specification;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
 
 namespace InprovePlan.UserCase.AppOrders.Queries;
 

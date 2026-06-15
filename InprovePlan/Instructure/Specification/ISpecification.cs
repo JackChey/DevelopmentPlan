@@ -42,11 +42,12 @@ public interface ISpecification<TEntity>
     /// </summary>
     IReadOnlyList<Expression<Func<TEntity, object>>> Includes { get; }
 
+
     /// <summary>
     /// 是否使用 AsNoTracking。
     /// 
     /// 查询列表页通常不需要 EF Core 跟踪实体状态，
     /// 使用 AsNoTracking 可以减少内存占用，提高查询性能。
     /// </summary>
-    bool AsNoTracking { get; }
+    bool AsNoTracking { get; set; }
 }

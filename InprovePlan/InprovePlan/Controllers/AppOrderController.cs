@@ -169,12 +169,43 @@ public class AppOrderController() : BaseController
     /// <summary>
     /// 查询订单。用于测试 N+1 问题
     /// </summary>
+    [NonAction]
     [HttpGet("GetTest")]
     public async Task<IActionResult> GetTest(
         CancellationToken cancellationToken)
     {
         var result = await Sender.Send(
             new GetAppOrderTestQuery(),
+            cancellationToken);
+
+        return ReturnResult(result);
+    }
+
+    /// <summary>
+    /// 查询订单。用于测试对比 NoTracking 问题
+    /// </summary>
+    [NonAction]
+    [HttpGet("GetWithNotrackingTest")]
+    public async Task<IActionResult> GetWithNotrackingTest(
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new GetAppOrderWithNotrackingTestQuery(),
+            cancellationToken);
+
+        return ReturnResult(result);
+    }
+
+    /// <summary>
+    /// 查询订单。用于测试对比 NoTracking 问题
+    /// </summary>
+    [NonAction]
+    [HttpGet("GetWithtrackingTest")]
+    public async Task<IActionResult> GetWithtrackingTest(
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new GetAppOrderWithtrackingTestQuery(),
             cancellationToken);
 
         return ReturnResult(result);

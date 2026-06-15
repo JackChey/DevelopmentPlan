@@ -31,7 +31,7 @@ public abstract class Specification<TEntity> : ISpecification<TEntity>  where TE
     /// 对于列表查询、分页查询、只读查询，这是更合理的默认值。
     /// 如果确实需要修改实体，可以在具体规范中关闭。
     /// </summary>
-    public bool AsNoTracking { get; protected set; } = true;
+    public bool AsNoTracking { get;  set; } = true;
 
     /// <summary>
     /// 添加查询条件。
