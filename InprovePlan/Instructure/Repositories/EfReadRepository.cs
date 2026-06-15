@@ -107,9 +107,9 @@ public class EfReadRepository<TEntity> : IReadRepository<TEntity>
         ArgumentNullException.ThrowIfNull(sortQuery);
         ArgumentNullException.ThrowIfNull(sortWhitelist);
 
-        DbContext.ChangeTracker.Clear();
+        //DbContext.ChangeTracker.Clear();
 
-        var sw = System.Diagnostics.Stopwatch.StartNew();
+        //var sw = System.Diagnostics.Stopwatch.StartNew();
 
         var pagingErrors = pagination.Validate();
 
@@ -142,13 +142,13 @@ public class EfReadRepository<TEntity> : IReadRepository<TEntity>
             .Take(pagination.PageSize)
             .ToListAsync(cancellationToken);
 
-        sw.Stop();
+        //sw.Stop();
 
-        var trackedCount = DbContext.ChangeTracker.Entries().Count();
+        //var trackedCount = DbContext.ChangeTracker.Entries().Count();
 
-        Console.WriteLine($"Count={items.Count}");
-        Console.WriteLine($"TrackedCount={trackedCount}");
-        Console.WriteLine($"耗时={sw.ElapsedMilliseconds}");
+        //Console.WriteLine($"Count={items.Count}");
+        //Console.WriteLine($"TrackedCount={trackedCount}");
+        //Console.WriteLine($"耗时={sw.ElapsedMilliseconds}");
 
         return PagedResult<TEntity>.Create(
             items,
