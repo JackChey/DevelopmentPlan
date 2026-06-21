@@ -22,4 +22,9 @@ public static class DataSchemaConstants
 
     public const int OrderNoLength = 64; // 订单业务编号长度。
     public const int CurrencyLength = 3; // ISO 4217 货币编码长度，例如 CNY、USD。
+
+    public const int TypeNameLength = 128;// 商品分类名称长度。
+    public const int TypeDescriptionLength = 1000;// 商品分类描述长度。
+
+    public const int AddressTypeNameLength = 128; // 用户地址名称最大长度
 }

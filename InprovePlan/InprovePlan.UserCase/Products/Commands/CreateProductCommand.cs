@@ -16,7 +16,7 @@ public sealed record CreateProductCommand(
     string ProductCode,
     string ProductName,
     string ProductDescription,
-    int ProductTypeId,
+    long ProductTypeId,
     decimal UnitPrice,
     string Currency
 ) : ICommand<Result<ProductDto>>;

@@ -210,4 +210,23 @@ public class AppOrderController() : BaseController
 
         return ReturnResult(result);
     }
+
+   /// <summary>
+   /// 根据用户ID查询订单
+   /// 用于模拟慢Sql查询--无索引的情况
+   /// </summary>
+   /// <param name="Id">用户ID</param>
+   /// <param name="cancellationToken"></param>
+   /// <returns></returns>
+    [NonAction]
+    [HttpGet("GetSlowSqlWithNoIndexTest")]
+    public async Task<IActionResult> GetSlowSqlWithNoIndexTest( long Id,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new GetAppOrderSlowSqlWithNoIndexTestQuery(Id),
+            cancellationToken);
+
+        return ReturnResult(result);
+    }
 }

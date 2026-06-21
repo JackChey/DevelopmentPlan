@@ -38,11 +38,7 @@ namespace InprovePlan
         /// <returns></returns>
         public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // 注册 AutoMapper
-            services.AddAutoMapper(cfg =>
-            {
-                cfg.AddMaps(Assembly.GetExecutingAssembly());
-            }, Assembly.GetExecutingAssembly());
+           
 
             services.ConfigEnvironment(configuration);
 

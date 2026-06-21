@@ -51,7 +51,7 @@ namespace InprovePlan.Domain.Entities
         /// <summary>
         /// 商品分类
         /// </summary>
-        public int ProductTypeId { get; set;} 
+        public long ProductTypeId { get; set;} 
 
         /// <summary>
         /// 商品状态

@@ -14,16 +14,16 @@ namespace InprovePlan.UserCase.AppOrders.Queries;
 /// 查询订单及对应用户
 /// </summary>
 public sealed record GetAppOrderTestQuery()
-    : IQuery<Result<NPlusOneDemoResult>>;
+    : IQuery<Result<OrderTestQueryDemoResult>>;
 
 public sealed class GetAppOrderTestQueryHandler(
     IReadRepository<AppOrder> orderRepository,
     IReadRepository<AppUser> userRepository,
     IReadRepository<Product> productRepository,
     QueryCounterInterceptor queryCounter)
-    : IQueryHandler<GetAppOrderTestQuery, Result<NPlusOneDemoResult>>
+    : IQueryHandler<GetAppOrderTestQuery, Result<OrderTestQueryDemoResult>>
 {
-    public async Task<Result<NPlusOneDemoResult>> Handle(GetAppOrderTestQuery request, CancellationToken cancellationToken)
+    public async Task<Result<OrderTestQueryDemoResult>> Handle(GetAppOrderTestQuery request, CancellationToken cancellationToken)
     {
         queryCounter.Reset();
 
@@ -61,7 +61,7 @@ public sealed class GetAppOrderTestQueryHandler(
             AppOrderSortWhitelist.Instance,
             cancellationToken);
 
-        var items = new List<NPlusOneOrderItem>();
+        var items = new List<OrderTestQueryItem>();
 
         // 这里是不触发 n+1 的写法
         var userIds = ordersResult.Items
@@ -92,7 +92,7 @@ public sealed class GetAppOrderTestQueryHandler(
             var product = products.FirstOrDefault(
                 product => product.Id == order.ProductId);
 
-            items.Add(new NPlusOneOrderItem(
+            items.Add(new OrderTestQueryItem(
                 order.Id,
                 order.OrderNo,
                 user?.UserName ?? string.Empty,
@@ -125,7 +125,7 @@ public sealed class GetAppOrderTestQueryHandler(
 
         var snapshot = queryCounter.Snapshot();
 
-        var result = new NPlusOneDemoResult(
+        var result = new OrderTestQueryDemoResult(
             OrderCount: ordersResult.Items.Count,
             TotalSqlCount: snapshot.TotalCount,
             SelectSqlCount: snapshot.SelectCount,
@@ -135,7 +135,7 @@ public sealed class GetAppOrderTestQueryHandler(
             SqlSamples: snapshot.Commands.Take(20).ToList(),
             Items: items);
 
-        return Result<NPlusOneDemoResult>.Success(result);
+        return Result<OrderTestQueryDemoResult>.Success(result);
     }
 }
 
@@ -159,16 +159,16 @@ public sealed class ProductsByIdsSpecification : Specification<Product>
     }
 }
 
-public sealed record NPlusOneDemoResult(
+public  record OrderTestQueryDemoResult(
     int OrderCount,
     int TotalSqlCount,
     int SelectSqlCount,
     int NonQuerySqlCount,
     string ExpectedNPlusOneDescription,
     IReadOnlyList<string> SqlSamples,
-    IReadOnlyList<NPlusOneOrderItem> Items);
+    IReadOnlyList<OrderTestQueryItem> Items);
 
-public sealed record NPlusOneOrderItem(
+public  record OrderTestQueryItem(
     long OrderId,
     string OrderNo,
     string UserName,

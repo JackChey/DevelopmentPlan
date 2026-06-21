@@ -18,7 +18,7 @@ public sealed record ProductDto(
     string ProductCode,
     string ProductName,
     string ProductDescription,
-    int ProductTypeId,
+    long ProductTypeId,
     AppProductStatus ProductStatus,
     decimal UnitPrice,
     string Currency);

@@ -16,7 +16,7 @@ public sealed record UpdateProductCommand(
     long Id,
     string ProductName,
     string ProductDescription,
-    int ProductTypeId,
+    long ProductTypeId,
     AppProductStatus ProductStatus,
     decimal UnitPrice,
     string Currency

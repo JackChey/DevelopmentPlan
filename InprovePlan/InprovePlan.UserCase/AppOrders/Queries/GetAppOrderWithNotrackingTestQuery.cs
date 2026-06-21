@@ -13,14 +13,14 @@ namespace InprovePlan.UserCase.AppOrders.Queries;
 /// 查询订单及对应用户
 /// </summary>
 public sealed record GetAppOrderWithNotrackingTestQuery()
-    : IQuery<Result<NPlusOneDemoResult>>;
+    : IQuery<Result<OrderTestQueryDemoResult>>;
 
 public sealed class GetAppOrderWithNotrackingTestQueryHandler(
     IReadRepository<AppOrder> orderRepository,
     QueryCounterInterceptor queryCounter)
-    : IQueryHandler<GetAppOrderWithNotrackingTestQuery, Result<NPlusOneDemoResult>>
+    : IQueryHandler<GetAppOrderWithNotrackingTestQuery, Result<OrderTestQueryDemoResult>>
 {
-    public async Task<Result<NPlusOneDemoResult>> Handle(GetAppOrderWithNotrackingTestQuery request, CancellationToken cancellationToken)
+    public async Task<Result<OrderTestQueryDemoResult>> Handle(GetAppOrderWithNotrackingTestQuery request, CancellationToken cancellationToken)
     {
         queryCounter.Reset();
 
@@ -58,11 +58,11 @@ public sealed class GetAppOrderWithNotrackingTestQueryHandler(
             AppOrderSortWhitelist.Instance,
             cancellationToken);
 
-        var items = new List<NPlusOneOrderItem>();
+        var items = new List<OrderTestQueryItem>();
 
         foreach (var order in ordersResult.Items)
         {
-            items.Add(new NPlusOneOrderItem(
+            items.Add(new OrderTestQueryItem(
                 order.Id,
                 order.OrderNo,
                 string.Empty,
@@ -73,7 +73,7 @@ public sealed class GetAppOrderWithNotrackingTestQueryHandler(
 
         var snapshot = queryCounter.Snapshot();
 
-        var result = new NPlusOneDemoResult(
+        var result = new OrderTestQueryDemoResult(
             OrderCount: ordersResult.Items.Count,
             TotalSqlCount: snapshot.TotalCount,
             SelectSqlCount: snapshot.SelectCount,
@@ -82,7 +82,7 @@ public sealed class GetAppOrderWithNotrackingTestQueryHandler(
             SqlSamples: snapshot.Commands.Take(20).ToList(),
             Items: items);
 
-        return Result<NPlusOneDemoResult>.Success(result);
+        return Result<OrderTestQueryDemoResult>.Success(result);
     }
 }
 
