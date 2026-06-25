@@ -1,5 +1,4 @@
-﻿
-using InprovePlan.SystemLogs;
+﻿using Instructure.SystemLogs;
 using System.Security.Claims;
 
 namespace InprovePlan.Middlewares

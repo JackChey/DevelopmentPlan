@@ -106,7 +106,7 @@ namespace Instructure.IResult
         /// <param name="result"></param>
         public static implicit operator Result<T>(Result result)
         {
-            return new Result<T>(default(T))
+            return new Result<T>(default(T)!)
             {
                 Status = result.Status,
                 Errors = result.Errors,

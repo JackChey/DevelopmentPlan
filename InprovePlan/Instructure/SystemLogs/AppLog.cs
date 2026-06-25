@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace InprovePlan.SystemLogs
+namespace Instructure.SystemLogs
 {
     /// <summary>
     /// 
@@ -45,12 +45,12 @@ namespace InprovePlan.SystemLogs
         /// <summary>
         /// 分布式追踪主键,贯穿一次请求在多服务中的全链路
         /// </summary>
-        public string? TraceId { get; set; } 
+        public string? TraceId { get; set; }
 
         /// <summary>
         /// 当前调用片段ID,配合 TraceId 还原链路中的单个步骤
         /// </summary>
-        public string? SpanId { get; set; } 
+        public string? SpanId { get; set; }
 
     }
 }

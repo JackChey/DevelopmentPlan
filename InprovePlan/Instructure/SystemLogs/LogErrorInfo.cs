@@ -1,4 +1,4 @@
-﻿namespace InprovePlan.SystemLogs
+﻿namespace Instructure.SystemLogs
 {
     /// <summary>
     ///  日志异常信息 
@@ -30,6 +30,6 @@
         /// </summary>
         public string? SourceContext { get; set; } = string.Empty;
 
-        
+
     }
 }

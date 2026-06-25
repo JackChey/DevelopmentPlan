@@ -44,7 +44,6 @@ public sealed class GetAppOrderSlowSqlWithNoIndexTestSpecification
 
 public sealed class GetAppOrderSlowSqlWithNoIndexTestQueryHandler(
     IReadRepository<AppOrder> orderRepository,
-    IMapper mapper,
     QueryCounterInterceptor queryCounter)
     : IQueryHandler<GetAppOrderSlowSqlWithNoIndexTestQuery, Result<OrderTestQueryDemoResult>>
 {

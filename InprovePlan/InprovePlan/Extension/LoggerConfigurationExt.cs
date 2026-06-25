@@ -1,7 +1,6 @@
-﻿using Serilog.Configuration;
-using Serilog.Formatting;
+﻿using Instructure.SystemLogs.LogEvents;
 using Serilog;
-using InprovePlan.SystemLogs.LogEvents;
+using Serilog.Configuration;
 
 namespace InprovePlan.Extension
 {

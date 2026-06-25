@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Serilog.Events;
+﻿using Serilog.Events;
 using Serilog.Formatting.Json;
-using System.Security.Claims;
 using System.Text.Json;
 
-namespace InprovePlan.SystemLogs.Mappers
+namespace Instructure.SystemLogs.Mappers
 {
     /// <summary>
     /// 

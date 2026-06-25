@@ -1,4 +1,4 @@
-﻿namespace InprovePlan.SystemLogs
+﻿namespace Instructure.SystemLogs
 {
     /// <summary>
     ///  http 请求信息,用于记录日志
@@ -18,7 +18,7 @@
         /// <summary>
         /// 响应状态
         /// </summary>
-        public int? StatusCode { get; set; } 
+        public int? StatusCode { get; set; }
 
         /// <summary>
         /// 耗时

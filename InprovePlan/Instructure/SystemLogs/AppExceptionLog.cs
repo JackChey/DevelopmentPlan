@@ -1,9 +1,9 @@
-﻿namespace InprovePlan.SystemLogs
+﻿namespace Instructure.SystemLogs
 {
     /// <summary>
     /// 异常日志
     /// </summary>
-    public class AppExceptionLog: AppLog
+    public class AppExceptionLog : AppLog
     {
 
         /// <summary>
@@ -24,7 +24,7 @@
         /// <summary>
         /// 日志标签
         /// </summary>
-        public string[]? Tags { get; set; } 
+        public string[]? Tags { get; set; }
 
     }
 }

@@ -1,6 +1,7 @@
-﻿using Serilog.Events;
+﻿using Instructure.SystemLogs;
+using Serilog.Events;
 
-namespace InprovePlan.SystemLogs.Mappers
+namespace Instructure.SystemLogs.Mappers
 {
     /// <summary>
     /// 

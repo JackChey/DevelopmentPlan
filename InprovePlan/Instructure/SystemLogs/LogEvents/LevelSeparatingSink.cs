@@ -1,13 +1,11 @@
-﻿using InprovePlan.SystemLogs.Formatter;
+﻿using Instructure.SystemLogs.Formatter;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using Serilog.Formatting.Compact;
-using System;
 using System.Collections.Concurrent;
 using ILogger = Serilog.Core.Logger;
 
-namespace InprovePlan.SystemLogs.LogEvents
+namespace Instructure.SystemLogs.LogEvents
 {
     /// <summary>
     /// 生产级日志分流 Sink。
@@ -51,7 +49,7 @@ namespace InprovePlan.SystemLogs.LogEvents
             // 初始化高优先级 Logger
             // 注意：这里配置 MinimumLevel.Verbose 是为了让内部 Logger 接收所有传入的事件，
             // 具体的级别过滤逻辑在 DispatchLog 方法中通过代码控制，而不是依赖 Serilog 的配置过滤。
-            this._highLevelLogger = new LoggerConfiguration()
+            _highLevelLogger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .WriteTo.File(
                     formatter: new AppExceptionLogFormatter(),

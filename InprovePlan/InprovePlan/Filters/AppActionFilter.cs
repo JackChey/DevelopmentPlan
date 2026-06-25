@@ -1,7 +1,4 @@
-﻿using InprovePlan.SystemLogs;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Serilog;
-using System.Diagnostics;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace InprovePlan.Filters
 {

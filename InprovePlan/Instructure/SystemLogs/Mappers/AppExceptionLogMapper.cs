@@ -1,13 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Serilog.Events;
-using System.Security.Claims;
+﻿using Serilog.Events;
 
-namespace InprovePlan.SystemLogs.Mappers
+namespace Instructure.SystemLogs.Mappers
 {
     /// <summary>
     /// 
     /// </summary>
-    public class AppExceptionLogMapper(): LogMapper
+    public class AppExceptionLogMapper() : LogMapper
     {
         /// <summary>
         /// 
@@ -47,12 +45,12 @@ namespace InprovePlan.SystemLogs.Mappers
                 {
                     Code = GetString(e, "errorcode") ?? "code",
                     Message = e.Exception?.Message,
-                    Stack = e.Exception?.StackTrace ,
+                    Stack = e.Exception?.StackTrace,
                     Type = e.Exception?.GetType().ToString(),
                     SourceContext = GetString(e, "SourceContext") ?? string.Empty,
                 },
                 Tags = GetStringArray(e, "tags"),
-             
+
             };
         }
     }

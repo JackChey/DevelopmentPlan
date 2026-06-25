@@ -1,14 +1,14 @@
-﻿using InprovePlan.SystemLogs.Mappers;
+﻿using Instructure.SystemLogs.Mappers;
 using Serilog.Events;
 using Serilog.Formatting;
 using System.Text.Json;
 
-namespace InprovePlan.SystemLogs.Formatter
+namespace Instructure.SystemLogs.Formatter
 {
     /// <summary>
     /// 
     /// </summary>
-    public class AppExceptionLogFormatter : ITextFormatter
+    public class AppRequestLogFormatter : ITextFormatter
     {
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -23,7 +23,7 @@ namespace InprovePlan.SystemLogs.Formatter
         /// <exception cref="NotImplementedException"></exception>
         public void Format(LogEvent logEvent, TextWriter output)
         {
-            var model = AppExceptionLogMapper.Map(logEvent);
+            var model = AppRequestLogMapper.Map(logEvent);
             output.WriteLine(JsonSerializer.Serialize(model, JsonOptions));
         }
     }

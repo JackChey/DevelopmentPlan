@@ -1,4 +1,4 @@
-﻿namespace InprovePlan.SystemLogs
+﻿namespace Instructure.SystemLogs
 {
     /// <summary>
     ///  请求业务逻辑信息
@@ -19,6 +19,6 @@
         /// 业务主键（订单号等）
         /// </summary>
         public string BizId { get; set; } = string.Empty;
-       
+
     }
 }

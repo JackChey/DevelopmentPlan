@@ -1,4 +1,4 @@
-﻿namespace InprovePlan.SystemLogs
+﻿namespace Instructure.SystemLogs
 {
     /// <summary>
     ///  http 请求用户信息,用于记录日志
@@ -28,7 +28,7 @@
         /// <summary>
         /// 角色
         /// </summary>
-        public string[]? Roles { get; set; } 
-       
+        public string[]? Roles { get; set; }
+
     }
 }

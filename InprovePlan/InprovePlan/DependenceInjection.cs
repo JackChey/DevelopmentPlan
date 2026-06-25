@@ -5,7 +5,6 @@ using InprovePlan.Prometheus;
 using InprovePlan.Prometheus.AppMetrics;
 using InprovePlan.Service;
 using InprovePlan.Service.Prometheus;
-using InprovePlan.SystemLogs.LogEvents;
 using InprovePlan.UserCase;
 using Instructure.Data;
 using Instructure.Interceptors;
@@ -13,8 +12,8 @@ using Instructure.Interfaces;
 using Instructure.Interfaces.Jwt;
 using Instructure.Response;
 using Instructure.Services.Jwt;
+using Instructure.SystemLogs.LogEvents;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
@@ -45,7 +44,7 @@ namespace InprovePlan
             services.AddInfranstructureServices(configuration);
 
             services.ConfigDbContext(configuration);
-            services.AddUserCaselService();
+            services.AddUserCaselService(configuration);
 
             return services;
         }
