@@ -1,12 +1,7 @@
 ﻿namespace InprovePlan.UserCase.Caching;
 
 using Instructure.Caching;
-using Instructure.Exceptions;
-using Instructure.SystemLogs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Diagnostics;
 using ZiggyCreatures.Caching.Fusion;
 
 public sealed class AppCache(IFusionCache _cache,IOptions<CacheOptions> configureOptions) : IAppCache
@@ -49,7 +44,7 @@ public sealed class AppCache(IFusionCache _cache,IOptions<CacheOptions> configur
             {
                 // 使用独立的空值 TTL 覆盖首次写入的正常 TTL。
                 var nullValueOptions =
-                    CreateFusionCacheEntryOptions(policy.NullValueDuration);
+                    CreateFusionCacheEntryOptions(policy.NullValueDuration, enableFailSafe: false);
 
                 await _cache.SetAsync(
                     key,
@@ -117,7 +112,7 @@ public sealed class AppCache(IFusionCache _cache,IOptions<CacheOptions> configur
             token: cancellationToken);
     }
 
-    private FusionCacheEntryOptions CreateFusionCacheEntryOptions(TimeSpan duration)
+    private FusionCacheEntryOptions CreateFusionCacheEntryOptions(TimeSpan duration, bool enableFailSafe = true)
     {
         return new FusionCacheEntryOptions
         {
@@ -128,16 +123,20 @@ public sealed class AppCache(IFusionCache _cache,IOptions<CacheOptions> configur
             // 开启 Fail-Safe。
             // 当数据库、Redis 或 factory 短暂异常时，如果缓存中有旧值，
             // FusionCache 可以返回旧值，提升接口可用性。
-            IsFailSafeEnabled = true,
+            IsFailSafeEnabled = enableFailSafe,
 
             // 旧值最多允许被 Fail-Safe 使用多久。
             // 例如正常 TTL 是 5 分钟，这里是 30 分钟：
             // 5 分钟后数据逻辑过期，但异常时最多 30 分钟内还能兜底返回旧值。
-            FailSafeMaxDuration = TimeSpan.FromMinutes(30),
+            FailSafeMaxDuration = enableFailSafe
+            ? TimeSpan.FromMinutes(30)
+            : TimeSpan.Zero,
 
             // Fail-Safe 触发后，短时间内不要一直反复回源。
             // 避免数据库或 Redis 故障时，大量请求持续打到后端。
-            FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+            FailSafeThrottleDuration = enableFailSafe
+            ? TimeSpan.FromSeconds(30)
+            : TimeSpan.Zero,
 
             // FactorySoftTimeout：
             // 如果回源超过 300ms，且存在旧缓存，FusionCache 可以先返回旧值。
