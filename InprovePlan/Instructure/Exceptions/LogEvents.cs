@@ -112,6 +112,11 @@ public static class LogEvents
     public const string CacheMiss = "cache.miss";
 
     /// <summary>
+    /// 写入缓存
+    /// </summary>
+    public const string CacheSet = "cache.set";
+
+    /// <summary>
     /// 命中缓存
     /// </summary>
     public const string CacheHit = "cache.hit";
@@ -135,4 +140,24 @@ public static class LogEvents
     /// 返回旧缓存
     /// </summary>
     public const string CacheFailSafe = "cache.failsafe";
+
+    /// <summary>
+    /// L1缓存命中
+    /// </summary>
+    public const string CacheMemoryHit = "cache.memory.hit";
+
+    /// <summary>
+    /// L1缓存缺失
+    /// </summary>
+    public const string CacheMemoryMiss = "cache.memory.miss";
+
+    /// <summary>
+    /// L2缓存命中
+    /// </summary>
+    public const string CacheDistributeHit = "cache.distribute.hit";
+
+    /// <summary>
+    /// L2缓存缺失
+    /// </summary>
+    public const string CacheDistributeMiss = "cache.distribute.miss";
 }

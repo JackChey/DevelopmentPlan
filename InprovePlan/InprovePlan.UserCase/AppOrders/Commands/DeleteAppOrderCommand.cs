@@ -2,9 +2,11 @@
 using InprovePlan.Domain.Entities;
 using InprovePlan.ShareKernel.Messaging;
 using InprovePlan.UserCase.Common.Attributes;
+using Instructure.Caching;
 using Instructure.Interfaces;
 using Instructure.IResult;
 using Instructure.Repositories;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace InprovePlan.UserCase.AppOrders.Commands;
 
@@ -32,6 +34,8 @@ public sealed class DeleteAppOrderCommandValidator
 
 public sealed class DeleteAppOrderCommandHandler(
     IRepository<AppOrder> orderRepository,
+    IAppCache cache,
+    ICacheKeyBuilder keyBuilder,
     IUser currentUser)
     : ICommandHandler<DeleteAppOrderCommand, Result>
 {
@@ -61,6 +65,15 @@ public sealed class DeleteAppOrderCommandHandler(
         orderRepository.Remove(order);
 
         await orderRepository.SaveChangesAsync(cancellationToken);
+
+        var cacheKey = keyBuilder.Build(
+           module: "order",
+           name: "detail",
+           request.Id);
+
+        await cache.RemoveAsync(
+           cacheKey,
+           cancellationToken);
 
         return Result.SeccessWithNoMsg;
     }

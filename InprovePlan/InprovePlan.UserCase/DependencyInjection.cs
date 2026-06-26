@@ -118,10 +118,12 @@ public static class DependencyInjection
         services.AddSingleton<ICacheKeyBuilder, CacheKeyBuilder>();
         services.AddSingleton<IAppCache, AppCache>();
 
-        services.AddSingleton<FusionCacheEventLogger>();
+        services.AddHostedService<FusionCacheEventLogger>();
 
-        services.AddHostedService(serviceProvider =>
-                    serviceProvider.GetRequiredService<FusionCacheEventLogger>());
+        //services.AddSingleton<FusionCacheEventLogger>();
+
+        //services.AddHostedService(serviceProvider =>
+        //            serviceProvider.GetRequiredService<FusionCacheEventLogger>());
 
         return services;
     }

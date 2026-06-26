@@ -22,45 +22,58 @@ public sealed class AppCache(IFusionCache _cache,IOptions<CacheOptions> configur
     {
         policy ??= CreateDefaultPolicy();
 
+        var loadedByFactory = false;
+        var normalOptions = CreateFusionCacheEntryOptions(policy.Duration);
+
+        var envelope = await _cache.GetOrSetAsync<CacheEnvelope<T>>(
+        key,
+        async ct =>
+        {
+            loadedByFactory = true;
+
+            // 不捕获异常：
+            // 有旧缓存时由 FusionCache Fail-Safe 处理；
+            // 没有旧缓存时异常继续向上传递给全局异常处理器。
+            var value = await factory(ct);
+
+            return value is null
+                ? CacheEnvelope<T>.Null()
+                : CacheEnvelope<T>.FromValue(value);
+        },
+        options: normalOptions,
+        token: cancellationToken);
+
+        if (loadedByFactory && !envelope.HasValue)
+        {
+            if (policy.CacheNullValue)
+            {
+                // 使用独立的空值 TTL 覆盖首次写入的正常 TTL。
+                var nullValueOptions =
+                    CreateFusionCacheEntryOptions(policy.NullValueDuration);
+
+                await _cache.SetAsync(
+                    key,
+                    envelope,
+                    options: nullValueOptions,
+                    token: cancellationToken);
+            }
+            else
+            {
+                // 禁止缓存空值时，清除 GetOrSetAsync 临时写入的空包装。
+                await _cache.RemoveAsync(
+                    key,
+                    options: null,
+                    token: cancellationToken);
+            }
+        }
+
         // 明确创建 FusionCacheEntryOptions，避免因为方法重载不同导致编译错误。
         var entryOptions = CreateFusionCacheEntryOptions(policy.Duration);
 
-        var envelope = await _cache.GetOrSetAsync<CacheEnvelope<T>>(
-            key,
-            async ct =>
-            {
-               
-
-                // 只有缓存中没有可用数据时，Factory 才会被执行。
-                // 因此进入这里代表需要访问数据库或其他数据源。
-
-
-                try
-                {
-                    // factory 是真正的回源逻辑，一般是 EF Core 查询。
-                    // 注意：这里传入 FusionCache 给的 ct，保证超时/取消能向下传递。
-                    var value = await factory(ct);
-
-                    // 如果数据库没有查到数据，仍然缓存一个“空值包装对象”。
-                    // 这样可以避免不存在的 ID 被反复打到数据库，降低缓存穿透风险。
-                    if (value is null)
-                    {
-                        return CacheEnvelope<T>.Null();
-                    }
-
-                    return CacheEnvelope<T>.FromValue(value);
-                }
-                catch (Exception exception)
-                {
-                    // 记录异常但是不影响系统
-                    return CacheEnvelope<T>.FromValue(null!);
-                }
-            },
-            options: entryOptions,
-            token: cancellationToken);
-
         // 对调用方来说，缓存空值时仍然表现为 null。
-        return envelope.HasValue ? envelope.Value : null;
+        return envelope.HasValue
+        ? envelope.Value
+        : null;
     }
 
     public ValueTask SetAsync<T>(
@@ -140,7 +153,8 @@ public sealed class AppCache(IFusionCache _cache,IOptions<CacheOptions> configur
 
             // Redis 分布式缓存硬超时。
             // 避免 Redis 慢请求拖垮业务接口。
-            DistributedCacheHardTimeout = TimeSpan.FromSeconds(1)
+            DistributedCacheHardTimeout = TimeSpan.FromSeconds(1),
+
         };
     }
 

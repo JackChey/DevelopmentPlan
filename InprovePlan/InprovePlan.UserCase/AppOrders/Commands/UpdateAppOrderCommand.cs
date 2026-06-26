@@ -2,9 +2,11 @@
 using InprovePlan.Domain.Entities;
 using InprovePlan.ShareKernel.Messaging;
 using InprovePlan.UserCase.Common.Attributes;
+using Instructure.Caching;
 using Instructure.Interfaces;
 using Instructure.IResult;
 using Instructure.Repositories;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace InprovePlan.UserCase.AppOrders.Commands;
 
@@ -40,6 +42,8 @@ public sealed class UpdateAppOrderCommandValidator
 
 public sealed class UpdateAppOrderCommandHandler(
     IRepository<AppOrder> orderRepository,
+    IAppCache cache,
+    ICacheKeyBuilder keyBuilder,
     IUser currentUser)
     : ICommandHandler<UpdateAppOrderCommand, Result<AppOrderDto>>
 {
@@ -71,6 +75,15 @@ public sealed class UpdateAppOrderCommandHandler(
         order.RecalculateTotalAmount();
 
         await orderRepository.SaveChangesAsync(cancellationToken);
+
+        var cacheKey = keyBuilder.Build(
+           module: "order",
+           name: "detail",
+           request.Id);
+
+        await cache.RemoveAsync(
+           cacheKey,
+           cancellationToken);
 
         return Result<AppOrderDto>.Success(ToDto(order));
     }
