@@ -148,7 +148,7 @@ public sealed class IdempotencyBehavior<TRequest, TResponse>(
         // 相同的 Key 被用于不同的请求内容（Hash 不匹配），这是潜在的错误或攻击，必须拒绝。
         if (beginResult.State == IdempotencyResultState.Conflict)
         {
-            throw new IdempotencyException(IdempotencyFailureStatus.BadRequest, "request_conflict", "The same idempotency key was used with a different request payload.");
+            throw new IdempotencyException(IdempotencyFailureStatus.Conflict‌, "request_conflict", "The same idempotency key was used with a different request payload.");
         }
 
         // 如果不是 Started，说明出现了未知状态。

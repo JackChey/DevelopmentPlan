@@ -8,7 +8,6 @@ using Instructure.IResult;
 using Instructure.Repositories;
 using Instructure.SystemLogs;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -254,7 +253,23 @@ public sealed class IdempotencyService(
 
         await _repository.SaveChangesAsync(cancellationToken);
 
-        await _redisRepository.SetAsync(recordKey, result, TimeSpan.FromHours(_options.ExpirationHours), cancellationToken);
+        // Redis 只是加速层，写失败不能影响主流程。
+        try
+        {
+            await _redisRepository.SetAsync(
+                recordKey,
+                result,
+                TimeSpan.FromHours(_options.ExpirationHours),
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to write idempotency cache after request completed. Key: {Key}, UserId: {UserId}",
+                context.Key,
+                context.UserId);
+        }
     }
 
     /// <summary>

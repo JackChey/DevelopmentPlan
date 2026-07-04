@@ -31,12 +31,10 @@ public class AppOrderController() : BaseController
     /// <param name="ProductId">商品Id。</param>
     /// <param name="Quantity">购买数量。</param>
     /// <param name="AddressId">收货地址Id。</param>
-    /// <param name="IdempotencyKey">幂等键。</param>
     public sealed record CreateAppOrderWithIdempotencyRequest(
         long ProductId,
         decimal Quantity,
-        long AddressId,
-        string IdempotencyKey);
+        long AddressId);
 
     /// <summary>
     /// 修改订单请求。
@@ -78,6 +76,7 @@ public class AppOrderController() : BaseController
     [HttpPost("CreateWithIdempotency")]
     public async Task<IActionResult> CreateWithIdempotency(
         [FromBody] CreateAppOrderWithIdempotencyRequest request,
+        [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
         CancellationToken cancellationToken)
     {
         var result = await Sender.Send(
@@ -85,7 +84,7 @@ public class AppOrderController() : BaseController
                 request.ProductId,
                 request.Quantity,
                 request.AddressId,
-                request.IdempotencyKey),
+                idempotencyKey ),
             cancellationToken);
 
         return ReturnResult(result);
