@@ -1,6 +1,7 @@
 ﻿using InprovePlan.Domain.Entities;
-using InprovePlan.UserCase.Common.Attributes;
 using InprovePlan.UserCase.Exceptions;
+using Instructure.Attributes;
+using Instructure.Exceptions;
 using Instructure.Interfaces;
 using Instructure.Repositories;
 using MediatR;

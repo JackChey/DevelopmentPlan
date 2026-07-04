@@ -71,6 +71,14 @@ public class EfReadRepository<TEntity> : IReadRepository<TEntity>
         return await query.FirstOrDefaultAsync(cancellationToken);
     }
 
+    public virtual async Task<TEntity?> FirstOrDefaultAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+             .FirstOrDefaultAsync(predicate, cancellationToken);
+    }
+
     /// <inheritdoc />
     public virtual async Task<IReadOnlyList<TEntity>> ListAsync(
         ISpecification<TEntity> specification,

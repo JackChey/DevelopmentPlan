@@ -1,13 +1,11 @@
 ﻿using FluentValidation;
 using InprovePlan.Domain.Entities;
 using InprovePlan.ShareKernel.Messaging;
-using InprovePlan.UserCase.Common.Attributes;
+using Instructure.Attributes;
 using Instructure.Caching;
 using Instructure.Interfaces;
 using Instructure.IResult;
 using Instructure.Repositories;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using StackExchange.Redis;
 
 namespace InprovePlan.UserCase.AppOrders.Queries;
 

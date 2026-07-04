@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using InprovePlan.Domain.Entities;
 using InprovePlan.ShareKernel.Messaging;
-using InprovePlan.UserCase.Common.Attributes;
+using Instructure.Attributes;
 using Instructure.Configurations.Entities;
 using Instructure.IResult;
 using Instructure.Paging;

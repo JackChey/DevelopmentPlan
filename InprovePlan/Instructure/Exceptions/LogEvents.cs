@@ -160,4 +160,29 @@ public static class LogEvents
     /// L2缓存缺失
     /// </summary>
     public const string CacheDistributeMiss = "cache.distribute.miss";
+
+    /// <summary>
+    /// 幂等操作失败
+    /// </summary>
+    public const string IdempotencyFail = "idempotency.fail";
+
+    /// <summary>
+    /// 幂等键消失
+    /// </summary>
+    public const string IdempotencyKeyDisappeared = "idempotency.key,disappeared";
+
+    /// <summary>
+    /// 幂等操作结果消失
+    /// </summary>
+    public const string IdempotencyResponseDisappeared = "idempotency.responsebody,disappeared";
+
+    /// <summary>
+    /// 幂等操作结果反序列化失败
+    /// </summary>
+    public const string IdempotencyResponseDeserializeFail = "idempotency.responsebody,deserializefail";
+
+    /// <summary>
+    /// 幂等操作结果不匹配
+    /// </summary>
+    public const string IdempotencyResponseTypeMismatch = "idempotency.responsebody,typemismatch";
 }

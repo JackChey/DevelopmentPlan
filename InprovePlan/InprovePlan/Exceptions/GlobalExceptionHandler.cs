@@ -38,7 +38,7 @@ namespace InprovePlan.Exceptions
         async ValueTask<bool> IExceptionHandler.TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
             var showDetails = _env.IsDevelopment()
-    ||          _env.IsEnvironment("Testing");
+    ||      _env.IsEnvironment("Testing");
 
             // 获取异常信息
             var (resultstatus, errorcode, message, details) = Map(exception, showDetails);
@@ -105,12 +105,19 @@ namespace InprovePlan.Exceptions
                 null
             ),
 
-            AuthorizationException => (
-                ResultStatus.Forbidden,
-                "forbidden",
-                "Forbidden",
+            AuthorizationException authexp => (
+                (authexp.Status.Equals(AuthorizationFailureStatus.Unauthorized) ? ResultStatus.Unauthorized : ResultStatus.Forbidden),
+                authexp.Code,
+                authexp.Message,
                 null
             ),
+
+            IdempotencyException idemexp => (
+               (idemexp.Status.Equals(IdempotencyFailureStatus.Conflict) ? ResultStatus.Conflict : ResultStatus.Invalid),
+               idemexp.Code,
+               idemexp.Message,
+               null
+           ),
 
             OperationCanceledException => (
                 ResultStatus.Error,

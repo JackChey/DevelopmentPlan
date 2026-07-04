@@ -35,6 +35,28 @@ public class EfRepository<TEntity>
     }
 
     /// <inheritdoc />
+    public virtual async Task<bool> TryAddAsync(
+        TEntity entity,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        try
+        {
+            await DbSet.AddAsync(
+           entity,
+           cancellationToken);
+
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <inheritdoc />
     public virtual async Task AddRangeAsync(
         IEnumerable<TEntity> entities,
         CancellationToken cancellationToken = default)

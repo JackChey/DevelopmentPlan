@@ -281,8 +281,8 @@ namespace InprovePlan
                 options.AddInterceptors(sp.GetRequiredService<QueryCounterInterceptor>());
 
                 // 使用mysql作为数据库并自动检测版本
-                //options.UseMySql(connectionstring, ServerVersion.AutoDetect(connectionstring));
-                options.UseMySql(connectionstring, new MySqlServerVersion(new Version(8, 0, 35)));
+                options.UseMySql(connectionstring, ServerVersion.AutoDetect(connectionstring));
+                //options.UseMySql(connectionstring, new MySqlServerVersion(new Version(8, 0, 35)));
             });
 
             return services;

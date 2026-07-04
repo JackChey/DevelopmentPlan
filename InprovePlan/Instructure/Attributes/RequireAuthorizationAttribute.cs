@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InprovePlan.UserCase.Common.Attributes;
+namespace Instructure.Attributes;
 
 /// <summary>
 /// UseCase 授权特性。

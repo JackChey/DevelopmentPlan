@@ -1,19 +1,14 @@
 ﻿using FluentValidation;
 using InprovePlan.Domain.Entities;
 using InprovePlan.ShareKernel.Messaging;
-using InprovePlan.UserCase.Common.Attributes;
+using Instructure.Attributes;
 using Instructure.Configurations.Entities;
 using Instructure.IResult;
 using Instructure.Paging;
 using Instructure.Repositories;
-using Instructure.Sorting.SortWhitelists;
 using Instructure.Sorting;
+using Instructure.Sorting.SortWhitelists;
 using Instructure.Specification;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InprovePlan.UserCase.Products.Queries;
 

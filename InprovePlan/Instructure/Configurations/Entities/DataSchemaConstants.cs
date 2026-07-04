@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,4 +28,12 @@ public static class DataSchemaConstants
     public const int TypeDescriptionLength = 1000;// 商品分类描述长度。
 
     public const int AddressTypeNameLength = 128; // 用户地址名称最大长度
+
+    public const int IdempotencyKeyLength = 128; // 幂等键最大长度
+    public const int RequestHashLength = 128; // 请求hash最大长度
+    public const int RequestMethodLength = 124; // 请求方法最大长度
+    public const int RequestPathLength = 1024; // 请求路径最大长度
+    public const int ErrorMessageLength = 1024; // 错误信息最大长度
+
+
 }

@@ -1,7 +1,10 @@
 ﻿using InprovePlan.UserCase.AppUsers.Security;
 using InprovePlan.UserCase.Behaviors;
 using InprovePlan.UserCase.Caching;
+using InprovePlan.UserCase.Idempotency;
 using Instructure.Caching;
+using Instructure.Idempotency;
+using Instructure.Interfaces;
 using Instructure.IResult;
 using Instructure.Repositories;
 using MediatR;
@@ -51,6 +54,7 @@ public static class DependencyInjection
 
             // 注册数据验证器
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(IdempotencyBehavior<,>));
         });
 
         // 注册 AutoMapper
@@ -60,6 +64,8 @@ public static class DependencyInjection
         });
 
         services.AddApplicationCache(configuration);
+
+        services.AddIdempotency(configuration);
 
         return services;
     }
@@ -117,6 +123,7 @@ public static class DependencyInjection
 
         services.AddSingleton<ICacheKeyBuilder, CacheKeyBuilder>();
         services.AddSingleton<IAppCache, AppCache>();
+        services.AddSingleton<IRedisRepository, RedisRepository>();
 
         services.AddHostedService<FusionCacheEventLogger>();
 
@@ -124,6 +131,27 @@ public static class DependencyInjection
 
         //services.AddHostedService(serviceProvider =>
         //            serviceProvider.GetRequiredService<FusionCacheEventLogger>());
+
+        return services;
+    }
+
+    /// <summary>
+    /// 配置幂等
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <returns></returns>
+    /// <exception cref="ValidationException"></exception>
+    public static IServiceCollection AddIdempotency(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.Configure<IdempotencyOptions>(configuration.GetSection("Idempotency"));
+
+        services.AddScoped<IIdempotencyService, IdempotencyService>();
+        services.AddScoped<IRequestHashProvider, RequestHashProvider>();
+        services.AddScoped<IDistributedLock, RedisDistributedLock>();
+        services.AddScoped<IIdempotencyRecordRepository, IdempotencyRecordRepository>();
 
         return services;
     }

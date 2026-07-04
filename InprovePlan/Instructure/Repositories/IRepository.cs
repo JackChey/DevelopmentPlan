@@ -27,6 +27,16 @@ public interface IRepository<TEntity> : IReadRepository<TEntity>
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 新增实体。
+    ///
+    /// 只负责把实体加入 DbContext。
+    /// 是否立即提交，由 SaveChangesAsync 或 UnitOfWork 控制。
+    /// </summary>
+    Task<bool> TryAddAsync(
+        TEntity entity,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 批量新增实体。
     /// </summary>
     Task AddRangeAsync(

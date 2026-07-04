@@ -1,14 +1,9 @@
 ﻿using FluentValidation;
 using InprovePlan.Domain.Entities;
 using InprovePlan.ShareKernel.Messaging;
-using InprovePlan.UserCase.Common.Attributes;
+using Instructure.Attributes;
 using Instructure.IResult;
 using Instructure.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InprovePlan.UserCase.Products.Queries;
 

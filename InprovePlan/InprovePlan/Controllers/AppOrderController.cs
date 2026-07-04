@@ -26,6 +26,19 @@ public class AppOrderController() : BaseController
         long AddressId);
 
     /// <summary>
+    /// 新增订单请求。
+    /// </summary>
+    /// <param name="ProductId">商品Id。</param>
+    /// <param name="Quantity">购买数量。</param>
+    /// <param name="AddressId">收货地址Id。</param>
+    /// <param name="IdempotencyKey">幂等键。</param>
+    public sealed record CreateAppOrderWithIdempotencyRequest(
+        long ProductId,
+        decimal Quantity,
+        long AddressId,
+        string IdempotencyKey);
+
+    /// <summary>
     /// 修改订单请求。
     /// </summary>
     /// <param name="Quantity">购买数量。</param>
@@ -54,6 +67,25 @@ public class AppOrderController() : BaseController
                 request.ProductId,
                 request.Quantity,
                 request.AddressId),
+            cancellationToken);
+
+        return ReturnResult(result);
+    }
+
+    /// <summary>
+    /// 幂等创建订单。
+    /// </summary>
+    [HttpPost("CreateWithIdempotency")]
+    public async Task<IActionResult> CreateWithIdempotency(
+        [FromBody] CreateAppOrderWithIdempotencyRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new CreateAppOrderWithIdempotencyCommand(
+                request.ProductId,
+                request.Quantity,
+                request.AddressId,
+                request.IdempotencyKey),
             cancellationToken);
 
         return ReturnResult(result);

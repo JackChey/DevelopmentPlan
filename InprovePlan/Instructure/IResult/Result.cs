@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Instructure.IResult
@@ -13,7 +14,7 @@ namespace Instructure.IResult
     {
         public ResultStatus Status { get; }
 
-        public string? Message { get; set; } 
+        public string? Message { get; set; }
 
         public IReadOnlyList<string>? Errors { get; }
 
@@ -28,7 +29,7 @@ namespace Instructure.IResult
                 throw new InvalidOperationException("Success result cannot contain errors.");
         }
 
-        public static Result Success(string? message ) => new Result(ResultStatus.Ok)
+        public static Result Success(string? message) => new Result(ResultStatus.Ok)
         {
             Message = message,
         };
@@ -70,6 +71,24 @@ namespace Instructure.IResult
             Value = value;
             Status = ResultStatus.Ok;
             Errors = Array.Empty<string>();
+        }
+
+        [JsonConstructor]
+        public Result(
+           ResultStatus status,
+           string? message,
+           IReadOnlyList<string>? errors,
+           T? value)
+        {
+            Status = status;
+            Message = message;
+            Errors = errors ?? Array.Empty<string>();
+            Value = value;
+
+            if (status == ResultStatus.Ok && Errors.Count > 0)
+            {
+                throw new InvalidOperationException("Success result cannot contain errors.");
+            }
         }
 
         public Result(ResultStatus status, IReadOnlyList<string>? errors = null)

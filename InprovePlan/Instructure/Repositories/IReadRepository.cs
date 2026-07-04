@@ -53,6 +53,16 @@ public interface IReadRepository<TEntity>
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 根据 Specification 查询单条数据。
+    ///
+    /// 如果没有数据，返回 null。
+    /// 如果可能存在多条数据，但业务只需要第一条，可以使用该方法。
+    /// </summary>
+    Task<TEntity?> FirstOrDefaultAsync(
+         Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 根据 Specification 查询列表。
     ///
     /// 注意：
