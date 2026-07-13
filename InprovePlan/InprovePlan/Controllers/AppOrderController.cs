@@ -53,6 +53,15 @@ public class AppOrderController() : BaseController
         AppOrderStatus OrderStatus);
 
     /// <summary>
+    /// 修改订单状态请求。
+    /// </summary>
+    /// <param name="OrderStatus">订单状态。</param>
+    /// <param name="UpdateReason">修改理由。</param>
+    public sealed record ChangeAppOrderStatusWithIdempotencyAndMqRequest(
+        AppOrderStatus OrderStatus,
+        string UpdateReason);
+
+    /// <summary>
     /// 创建订单。
     /// </summary>
     [HttpPost]
@@ -84,7 +93,7 @@ public class AppOrderController() : BaseController
                 request.ProductId,
                 request.Quantity,
                 request.AddressId,
-                idempotencyKey ),
+                idempotencyKey ?? ""),
             cancellationToken);
 
         return ReturnResult(result);
@@ -113,15 +122,18 @@ public class AppOrderController() : BaseController
     /// 修改订单状态。
     /// </summary>
     [HttpPut("{id:long}/status")]
-    public async Task<IActionResult> ChangeStatus(
+    public async Task<IActionResult> ChangeStatusWithIdempotencyAndMq(
         long id,
-        [FromBody] ChangeAppOrderStatusRequest request,
+        [FromBody] ChangeAppOrderStatusWithIdempotencyAndMqRequest request,
+        [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
         CancellationToken cancellationToken)
     {
         var result = await Sender.Send(
-            new ChangeAppOrderStatusCommand(
+            new ChangeAppOrderStatusWithIdempotencyAndMqCommand(
                 id,
-                request.OrderStatus),
+                request.OrderStatus,
+                request.UpdateReason,
+                idempotencyKey ?? ""),
             cancellationToken);
 
         return ReturnResult(result);
@@ -242,16 +254,16 @@ public class AppOrderController() : BaseController
         return ReturnResult(result);
     }
 
-   /// <summary>
-   /// 根据用户ID查询订单
-   /// 用于模拟慢Sql查询--无索引的情况
-   /// </summary>
-   /// <param name="Id">用户ID</param>
-   /// <param name="cancellationToken"></param>
-   /// <returns></returns>
+    /// <summary>
+    /// 根据用户ID查询订单
+    /// 用于模拟慢Sql查询--无索引的情况
+    /// </summary>
+    /// <param name="Id">用户ID</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     [NonAction]
     [HttpGet("GetSlowSqlWithNoIndexTest")]
-    public async Task<IActionResult> GetSlowSqlWithNoIndexTest( long Id,
+    public async Task<IActionResult> GetSlowSqlWithNoIndexTest(long Id,
         CancellationToken cancellationToken)
     {
         var result = await Sender.Send(

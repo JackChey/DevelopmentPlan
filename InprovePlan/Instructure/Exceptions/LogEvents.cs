@@ -99,8 +99,6 @@ public static class LogEvents
     /// </summary>
     public const string ExceptionHandled = "exception.handled";
 
-   
-
     /// <summary>
     /// 系统抛出异常但是未被处理
     /// </summary>
@@ -185,4 +183,19 @@ public static class LogEvents
     /// 幂等操作结果不匹配
     /// </summary>
     public const string IdempotencyResponseTypeMismatch = "idempotency.responsebody,typemismatch";
+
+    /// <summary>
+    /// 消息消费失败
+    /// </summary>
+    public const string ConsumerFail = "consumer.fail";
+
+    /// <summary>
+    /// 消息消费开始
+    /// </summary>
+    public const string ConsumerStart = "consumer.start";
+
+        /// <summary>
+        /// 消息消费成功
+        /// </summary>
+    public const string ConsumerSuccess = "consumer.success";
 }

@@ -132,6 +132,7 @@ public sealed class IdempotencyService(
             Method = context.Method,       // HTTP 方法
             Path = context.Path,           // 请求路径
             Status = IdempotencyRecordStatus.Processing, // 初始状态
+            CreatedByUserId = context.UserId,
             ExpiresAt = now.AddHours(_options.ExpirationHours) // 设置记录过期时间，避免数据无限膨胀
         };
 

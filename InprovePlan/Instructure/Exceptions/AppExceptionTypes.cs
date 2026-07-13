@@ -1,7 +1,4 @@
-﻿using System;
-using System.Runtime.Serialization;
-
-namespace Instructure.Exceptions;
+﻿namespace Instructure.Exceptions;
 
 /// <summary>
 /// 系统基础异常

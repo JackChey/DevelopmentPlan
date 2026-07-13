@@ -4,6 +4,7 @@ using Instructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Instructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260708123221_UpdateEntityConfigurations_UpdateStockRecord")]
+    partial class UpdateEntityConfigurations_UpdateStockRecord
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -652,7 +655,7 @@ namespace Instructure.Migrations
 
                     b.HasIndex("Delivered");
 
-                    b.ToTable("InboxState", (string)null);
+                    b.ToTable("InboxState");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
@@ -743,7 +746,7 @@ namespace Instructure.Migrations
                     b.HasIndex("InboxMessageId", "InboxConsumerId", "SequenceNumber")
                         .IsUnique();
 
-                    b.ToTable("OutboxMessage", (string)null);
+                    b.ToTable("OutboxMessage");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
@@ -773,7 +776,7 @@ namespace Instructure.Migrations
 
                     b.HasIndex("Created");
 
-                    b.ToTable("OutboxState", (string)null);
+                    b.ToTable("OutboxState");
                 });
 
             modelBuilder.Entity("InprovePlan.Domain.Entities.AppOrder", b =>

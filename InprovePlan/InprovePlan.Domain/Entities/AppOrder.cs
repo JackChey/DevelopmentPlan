@@ -42,6 +42,20 @@ namespace InprovePlan.Domain.Entities
         /// </summary>
         Received = 6,
 
+        /// <summary>
+        /// 拒收
+        /// </summary>
+        Refuse = 7,
+
+        /// <summary>
+        /// 退货
+        /// </summary>
+        Return = 8,
+
+        /// <summary>
+        /// 取消订单
+        /// </summary>
+        Cancel = 9,
     }
 
     /// <summary>

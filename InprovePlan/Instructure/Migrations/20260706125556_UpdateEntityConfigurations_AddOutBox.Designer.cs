@@ -4,6 +4,7 @@ using Instructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Instructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260706125556_UpdateEntityConfigurations_AddOutBox")]
+    partial class UpdateEntityConfigurations_AddOutBox
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -282,142 +285,6 @@ namespace Instructure.Migrations
                     b.ToTable("product_types", (string)null);
                 });
 
-            modelBuilder.Entity("InprovePlan.Domain.Entities.StockInRecord", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<long?>("CreatedByUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<long?>("LastModifiedByUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("ProductCodeSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("varchar(64)");
-
-                    b.Property<long>("ProductId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("ProductNameSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("varchar(128)");
-
-                    b.Property<decimal>("Quantity")
-                        .HasPrecision(18, 3)
-                        .HasColumnType("decimal(18,3)");
-
-                    b.Property<string>("Remark")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<string>("SourceAction")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<long?>("SourceBusinessId")
-                        .HasColumnType("bigint");
-
-                    b.Property<Guid?>("SourceMessageId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("LastModifiedByUserId");
-
-                    b.HasIndex("ProductCodeSnapshot");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("CreatedAt", "Id");
-
-                    b.HasIndex("ProductId", "CreatedAt");
-
-                    b.HasIndex("SourceBusinessId", "SourceAction")
-                        .IsUnique();
-
-                    b.ToTable("stock_in_records", (string)null);
-                });
-
-            modelBuilder.Entity("InprovePlan.Domain.Entities.StockOutRecord", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<long?>("CreatedByUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<long?>("LastModifiedByUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("ProductCodeSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("varchar(64)");
-
-                    b.Property<long>("ProductId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("ProductNameSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("varchar(128)");
-
-                    b.Property<decimal>("Quantity")
-                        .HasPrecision(18, 3)
-                        .HasColumnType("decimal(18,3)");
-
-                    b.Property<string>("Remark")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<string>("SourceAction")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<long?>("SourceBusinessId")
-                        .HasColumnType("bigint");
-
-                    b.Property<Guid?>("SourceMessageId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("LastModifiedByUserId");
-
-                    b.HasIndex("ProductCodeSnapshot");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("CreatedAt", "Id");
-
-                    b.HasIndex("ProductId", "CreatedAt");
-
-                    b.HasIndex("SourceBusinessId", "SourceAction")
-                        .IsUnique();
-
-                    b.ToTable("stock_out_records", (string)null);
-                });
-
             modelBuilder.Entity("InprovePlan.Domain.Entities.UserAddress", b =>
                 {
                     b.Property<long>("Id")
@@ -539,73 +406,6 @@ namespace Instructure.Migrations
                     b.ToTable("IdempotencyRecords", (string)null);
                 });
 
-            modelBuilder.Entity("Instructure.Massaging.MessageConsumeRecord", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("BusinessId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("BusinessType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("ConsumerName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000)");
-
-                    b.Property<DateTimeOffset?>("LastModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid>("MessageId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTimeOffset?>("ProcessingStartedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("RetryCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("TraceId")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConsumerName");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("TraceId");
-
-                    b.HasIndex("BusinessType", "BusinessId");
-
-                    b.HasIndex("MessageId", "ConsumerName")
-                        .IsUnique();
-
-                    b.HasIndex("Status", "RetryCount");
-
-                    b.ToTable("message_consume_records", (string)null);
-                });
-
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
                 {
                     b.Property<long>("Id")
@@ -652,7 +452,7 @@ namespace Instructure.Migrations
 
                     b.HasIndex("Delivered");
 
-                    b.ToTable("InboxState", (string)null);
+                    b.ToTable("InboxState");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
@@ -743,7 +543,7 @@ namespace Instructure.Migrations
                     b.HasIndex("InboxMessageId", "InboxConsumerId", "SequenceNumber")
                         .IsUnique();
 
-                    b.ToTable("OutboxMessage", (string)null);
+                    b.ToTable("OutboxMessage");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
@@ -773,7 +573,7 @@ namespace Instructure.Migrations
 
                     b.HasIndex("Created");
 
-                    b.ToTable("OutboxState", (string)null);
+                    b.ToTable("OutboxState");
                 });
 
             modelBuilder.Entity("InprovePlan.Domain.Entities.AppOrder", b =>
@@ -793,28 +593,6 @@ namespace Instructure.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("InprovePlan.Domain.Entities.StockInRecord", b =>
-                {
-                    b.HasOne("InprovePlan.Domain.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("InprovePlan.Domain.Entities.StockOutRecord", b =>
-                {
-                    b.HasOne("InprovePlan.Domain.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Product");
                 });
 #pragma warning restore 612, 618
         }
