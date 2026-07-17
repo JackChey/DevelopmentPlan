@@ -9,12 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Authorization\**" />
     <Compile Remove="logs\**" />
     <Compile Remove="UserCase\**" />
+    <Content Remove="Authorization\**" />
     <Content Remove="logs\**" />
     <Content Remove="UserCase\**" />
+    <EmbeddedResource Remove="Authorization\**" />
     <EmbeddedResource Remove="logs\**" />
     <EmbeddedResource Remove="UserCase\**" />
+    <None Remove="Authorization\**" />
     <None Remove="logs\**" />
     <None Remove="UserCase\**" />
   </ItemGroup>
@@ -51,7 +55,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Authorization\" />
     <Folder Include="Data\Seeding\" />
   </ItemGroup>
 
