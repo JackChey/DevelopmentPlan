@@ -105,7 +105,7 @@ public sealed class GetAppOrderByIdQueryHandler(
         return Result<AppOrderDto>.Success(orderDto);
     }
 
-    private static AppOrderDto ToDto(AppOrder order) => new(
+    public static AppOrderDto ToDto(AppOrder order) => new(
         order.Id,
         order.OrderNo,
         order.ProductId,

@@ -36,4 +36,13 @@ public interface IAppCache
     ValueTask RemoveAsync(
         string key,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据缓存键读取缓存数据；只读取缓存，不回源、不写入缓存。
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="key"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    ValueTask<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class;
 }

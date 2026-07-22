@@ -112,6 +112,27 @@ public sealed class AppCache(IFusionCache _cache,IOptions<CacheOptions> configur
             token: cancellationToken);
     }
 
+    public async ValueTask<T?> GetAsync<T>(
+    string key,
+    CancellationToken cancellationToken = default)
+    where T : class
+    {
+        var maybeEnvelope = await _cache.TryGetAsync<CacheEnvelope<T>>(
+            key,
+            token: cancellationToken);
+
+        if (!maybeEnvelope.HasValue)
+        {
+            return null;
+        }
+
+        var envelope = maybeEnvelope.Value;
+
+        return envelope.HasValue
+            ? envelope.Value
+            : null;
+    }
+
     private FusionCacheEntryOptions CreateFusionCacheEntryOptions(TimeSpan duration, bool enableFailSafe = true)
     {
         return new FusionCacheEntryOptions
