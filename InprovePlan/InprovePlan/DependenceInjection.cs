@@ -37,7 +37,7 @@ namespace InprovePlan
         /// <returns></returns>
         public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
         {
-           
+            ValidateRequiredConfiguration(configuration);
 
             services.ConfigEnvironment(configuration);
 
@@ -162,15 +162,18 @@ namespace InprovePlan
         /// <returns></returns>
         public static IServiceCollection ConfigEnvironment(this IServiceCollection services, IConfiguration configuration)
         {
-            var dbConnectionStr = configuration.GetSection("ConnectionStrings:DBConnection");
-            var rediaConnectionStr = configuration.GetSection("ConnectionStrings:RedisConnection");
-            var rabbitMqConnectionStr = configuration.GetSection("ConnectionStrings:RabbitMqConnection");
-            var prometheusSeetings = configuration.GetSection("PrometheusSettings");
+            //var dbConnectionStr = configuration.GetSection("ConnectionStrings:DBConnection");
+            //var rediaConnectionStr = configuration.GetSection("ConnectionStrings:RedisConnection");
+            //var rabbitMqConnectionStr = configuration.GetSection("ConnectionStrings:RabbitMqConnection");
+            //var prometheusSeetings = configuration.GetSection("PrometheusSettings");
 
-            services.Configure<DBConnection>(dbConnectionStr);
-            services.Configure<RedisConnection>(rediaConnectionStr);
-            services.Configure<RabbitMqConnection>(rabbitMqConnectionStr);
-            services.Configure<PrometheusSettings>(prometheusSeetings);
+            //services.Configure<DBConnection>(dbConnectionStr);
+            //services.Configure<RedisConnection>(rediaConnectionStr);
+            //services.Configure<RabbitMqConnection>(rabbitMqConnectionStr);
+            //services.Configure<PrometheusSettings>(prometheusSeetings);
+
+            services.Configure<RabbitMqConnection>(configuration.GetSection("RabbitMq"));
+            services.Configure<PrometheusSettings>(configuration.GetSection("PrometheusSettings"));
 
             return services;
         }
@@ -286,6 +289,31 @@ namespace InprovePlan
             });
 
             return services;
+        }
+
+
+        private static void ValidateRequiredConfiguration(IConfiguration configuration)
+        {
+            var requiredKeys = new[]
+            {
+        "ConnectionStrings:AppDbConnectionStrings",
+        "ConnectionStrings:RedisConnection",
+        "RabbitMq:Host",
+        "RabbitMq:VirtualHost",
+        "RabbitMq:Username",
+        "RabbitMq:Password",
+        "JwtSettings:Issuer",
+        "JwtSettings:Audience",
+        "JwtSettings:Secret"
+    };
+
+            foreach (var key in requiredKeys)
+            {
+                if (string.IsNullOrWhiteSpace(configuration[key]))
+                {
+                    throw new InvalidOperationException($"Required configuration '{key}' is missing.");
+                }
+            }
         }
     }
 }

@@ -1,23 +1,19 @@
-﻿using DotNet.Testcontainers.Containers;
-using InprovePlan.ApiTests.TestDoubles;
+﻿using InprovePlan.ApiTests.TestDoubles;
+using InprovePlan.ShareKernel.Messaging;
 using Instructure.Caching;
 using Instructure.Data;
 using Instructure.Interceptors;
 using Instructure.Interfaces;
 using Instructure.Interfaces.Jwt;
 using Instructure.IResult;
-using InprovePlan.ShareKernel.Messaging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using MySqlConnector;
-using Respawn;
 using StackExchange.Redis;
-using Testcontainers.MySql;
-using Testcontainers.Redis;
 
 namespace InprovePlan.ApiTests.Infrastructure;
 
@@ -37,6 +33,8 @@ public sealed class CustomWebApplicationFactory
     {
         await _database.InitializeAsync();
         await _redis.InitializeAsync();
+
+        SetTestEnvironmentVariables();
     }
 
     public async Task ResetDatabaseAsync()
@@ -101,6 +99,61 @@ public sealed class CustomWebApplicationFactory
         await _redis.DisposeAsync();
         await _database.DisposeAsync();
 
+        ClearTestEnvironmentVariables();
+
+    }
+
+    private void SetTestEnvironmentVariables()
+    {
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__AppDbConnectionStrings",
+            _database.ConnectionString);
+
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__RedisConnection",
+            _redis.ConnectionString);
+
+        Environment.SetEnvironmentVariable("RabbitMq__Host", "localhost");
+        Environment.SetEnvironmentVariable("RabbitMq__Port", "5672");
+        Environment.SetEnvironmentVariable("RabbitMq__VirtualHost", "/");
+        Environment.SetEnvironmentVariable("RabbitMq__Username", "guest");
+        Environment.SetEnvironmentVariable("RabbitMq__Password", "guest");
+
+        Environment.SetEnvironmentVariable("JwtSettings__Issuer", "InprovePlan.Tests");
+        Environment.SetEnvironmentVariable("JwtSettings__Audience", "InprovePlan.Tests");
+        Environment.SetEnvironmentVariable(
+            "JwtSettings__Secret",
+            "test-secret-key-for-api-tests-at-least-32-bytes");
+
+        Environment.SetEnvironmentVariable("JwtSettings__AccessTokenExpirationMinutes", "30");
+
+        Environment.SetEnvironmentVariable("PrometheusSettings__IP", "localhost");
+        Environment.SetEnvironmentVariable("PrometheusSettings__Port", "9090");
+        Environment.SetEnvironmentVariable("PrometheusSettings__TimeoutSeconds", "5");
+    }
+
+    private static void ClearTestEnvironmentVariables()
+    {
+        foreach (var key in new[]
+        {
+        "ConnectionStrings__AppDbConnectionStrings",
+        "ConnectionStrings__RedisConnection",
+        "RabbitMq__Host",
+        "RabbitMq__Port",
+        "RabbitMq__VirtualHost",
+        "RabbitMq__Username",
+        "RabbitMq__Password",
+        "JwtSettings__Issuer",
+        "JwtSettings__Audience",
+        "JwtSettings__Secret",
+        "JwtSettings__AccessTokenExpirationMinutes",
+        "PrometheusSettings__IP",
+        "PrometheusSettings__Port",
+        "PrometheusSettings__TimeoutSeconds"
+    })
+        {
+            Environment.SetEnvironmentVariable(key, null);
+        }
     }
 }
 

@@ -11,7 +11,7 @@ namespace InprovePlan.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class HealthController(IOptions<DBConnection>? dbconection, IOptions<RabbitMqConnection>? mqconection, IOptions<RedisConnection>? redisconection) : BaseController
+    public class HealthController(IConfiguration configuration) : BaseController
     {
         /// <summary>
         /// 服务存活检查
@@ -37,21 +37,21 @@ namespace InprovePlan.Controllers
             // 这里的检查只是演示代码,后续会补齐真实的验证逻辑
 
             // 检查DataBase
-            if (string.IsNullOrEmpty(dbconection?.Value.server))
+            if (string.IsNullOrEmpty(configuration.GetConnectionString("AppDbConnectionStrings")))
             {
-                return ReturnResult(Result.Failure("数据库异常"));
+                return ReturnResult(Result.Failure("数据库连接未配置"));
             }
 
             // 检查Redis
-            if (string.IsNullOrEmpty(redisconection?.Value.server))
+            if (string.IsNullOrEmpty(configuration.GetConnectionString("RedisConnection")))
             {
-                return ReturnResult(Result.Failure("Redis异常"));
+                return ReturnResult(Result.Failure("Redis连接未配置"));
             }
 
             // 检查RabbitMq
-            if (string.IsNullOrEmpty(mqconection?.Value.host))
+            if (string.IsNullOrEmpty(configuration.GetSection("RabbitMq")["Host"]))
             {
-                return ReturnResult(Result.Failure("RabbitMq异常"));
+                return ReturnResult(Result.Failure("RabbitMq未配置"));
             }
 
             return ReturnResult(Result.SeccessWithNoMsg);

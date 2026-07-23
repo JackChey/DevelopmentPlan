@@ -5,3 +5,7 @@ logs/
 *.user
 *.suo
 appsettings.Development.json
+appsettings.local.backup.json
+
+**/appsettings.Development.json
+**/appsettings.local*.json
