@@ -14,11 +14,13 @@ using Instructure.IResult;
 using Instructure.Repositories;
 using MassTransit;
 using MediatR;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using StackExchange.Redis;
 using System.Reflection;
 using ZiggyCreatures.Caching.Fusion;
@@ -33,7 +35,7 @@ public static class DependencyInjection
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
-    public static IServiceCollection AddUserCaselService(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddUserCaselService(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         services.Configure<PasswordHasherOptions>(options =>
         {
@@ -73,7 +75,11 @@ public static class DependencyInjection
         services.AddApplicationCache(configuration);
 
         services.AddIdempotency(configuration);
-        services.AddRabbitMq(configuration);
+
+        if (!environment.IsEnvironment("Testing"))
+        {
+            services.AddRabbitMq(configuration);
+        }
 
         return services;
     }
@@ -134,11 +140,6 @@ public static class DependencyInjection
         services.AddSingleton<IRedisRepository, RedisRepository>();
 
         services.AddHostedService<FusionCacheEventLogger>();
-
-        //services.AddSingleton<FusionCacheEventLogger>();
-
-        //services.AddHostedService(serviceProvider =>
-        //            serviceProvider.GetRequiredService<FusionCacheEventLogger>());
 
         return services;
     }

@@ -20,7 +20,7 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services.AddAppServices(builder.Configuration);
+    builder.Services.AddAppServices(builder.Configuration, builder.Environment);
 
 
     // ≈‰÷√»´æ÷“Ï≥£

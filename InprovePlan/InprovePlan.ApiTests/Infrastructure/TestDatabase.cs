@@ -40,7 +40,7 @@ public sealed class TestDatabase : IAsyncDisposable
     public AppDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseMySql(ConnectionString, ServerVersion.AutoDetect(ConnectionString))
+            .UseMySql(ConnectionString, new MySqlServerVersion(new Version(8, 4, 0)) )
             .Options;
 
         return new AppDbContext(options);

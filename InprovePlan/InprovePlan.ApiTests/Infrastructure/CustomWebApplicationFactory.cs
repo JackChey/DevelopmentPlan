@@ -83,7 +83,8 @@ public sealed class CustomWebApplicationFactory
 
                 options.UseMySql(
                     _database.ConnectionString,
-                    ServerVersion.AutoDetect(_database.ConnectionString),
+                    //ServerVersion.AutoDetect(_database.ConnectionString),
+                    new MySqlServerVersion(new Version(8, 4, 0)),
                     mysqlOptions =>
                     {
                         mysqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);

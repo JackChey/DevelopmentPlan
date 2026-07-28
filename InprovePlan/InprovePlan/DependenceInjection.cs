@@ -34,17 +34,18 @@ namespace InprovePlan
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
+        /// <param name="environment"></param>
         /// <returns></returns>
-        public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
         {
             ValidateRequiredConfiguration(configuration);
 
             services.ConfigEnvironment(configuration);
 
-            services.AddInfranstructureServices(configuration);
+            services.AddInfranstructureServices(configuration, environment);
 
             services.ConfigDbContext(configuration);
-            services.AddUserCaselService(configuration);
+            services.AddUserCaselService(configuration, environment);
 
             return services;
         }
@@ -54,9 +55,10 @@ namespace InprovePlan
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
+        /// <param name="environment"></param>
         /// <returns></returns>
         /// <exception cref="NullReferenceException"></exception>
-        public static IServiceCollection AddInfranstructureServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddInfranstructureServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
         {
             // 获取 Jwt设置
             var configurationSection = configuration.GetSection("JwtSettings");
@@ -80,7 +82,10 @@ namespace InprovePlan
 
             ConfigureAuthentication(services, jwtsettings);
 
-            ConfigPrometheus(services);
+            if (!environment.IsEnvironment("Testing"))
+            {
+                ConfigPrometheus(services);
+            }
 
             return services;
         }
@@ -284,8 +289,8 @@ namespace InprovePlan
                 options.AddInterceptors(sp.GetRequiredService<QueryCounterInterceptor>());
 
                 // 使用mysql作为数据库并自动检测版本
-                options.UseMySql(connectionstring, ServerVersion.AutoDetect(connectionstring));
-                //options.UseMySql(connectionstring, new MySqlServerVersion(new Version(8, 0, 35)));
+                //options.UseMySql(connectionstring, ServerVersion.AutoDetect(connectionstring));
+                options.UseMySql(connectionstring, new MySqlServerVersion(new Version(9, 1, 1)));
             });
 
             return services;
