@@ -59,9 +59,9 @@ pipeline {
                 // dir("${SOLUTION_DIR}"): 切换工作目录到 'InprovePlan' 文件夹下执行后续命令。
                 dir("${SOLUTION_DIR}") {
                     // 打印 .NET SDK 的版本信息，用于确认构建环境是否符合预期。
-                    sh 'dotnet --info'
+                    bat 'dotnet --info'
                     // 打印 Docker 版本信息，确保护宿主机或容器内 Docker 可用。
-                    sh 'docker version'
+                    bat 'docker version'
                 }
             }
         }
@@ -72,7 +72,7 @@ pipeline {
                 dir("${SOLUTION_DIR}") {
                     // dotnet restore: 下载并安装项目所需的 NuGet 包依赖。
                     // ${SOLUTION_FILE} 是之前定义的环境变量，解析为 'InprovePlan.sln'。
-                    sh 'dotnet restore ${SOLUTION_FILE}'
+                    bat 'dotnet restore ${SOLUTION_FILE}'
                 }
             }
         }
@@ -84,7 +84,7 @@ pipeline {
                     // dotnet build: 编译项目。
                     // --configuration Release: 使用发布模式编译（优化代码，不包含调试符号）。
                     // --no-restore: 跳过还原步骤，因为上一个阶段已经执行过 restore，加快速度。
-                    sh 'dotnet build ${SOLUTION_FILE} --configuration Release --no-restore'
+                    bat 'dotnet build ${SOLUTION_FILE} --configuration Release --no-restore'
                 }
             }
         }
@@ -96,7 +96,7 @@ pipeline {
                     // dotnet test: 运行指定项目的测试。
                     // --no-build: 直接使用上一阶段编译好的二进制文件，不再重新编译。
                     // --logger "trx;LogFileName=...": 将测试结果保存为 TRX 格式文件，便于 Jenkins 插件解析生成报告。
-                    sh 'dotnet test InprovePlan.UnitTests/InprovePlan.UnitTests.csproj --configuration Release --no-build --logger "trx;LogFileName=unit-tests.trx"'
+                    bat 'dotnet test InprovePlan.UnitTests/InprovePlan.UnitTests.csproj --configuration Release --no-build --logger "trx;LogFileName=unit-tests.trx"'
                 }
             }
         }
@@ -106,7 +106,7 @@ pipeline {
             steps {
                 dir("${SOLUTION_DIR}") {
                     // 运行集成测试项目，同样生成 TRX 报告文件。
-                    sh 'dotnet test InprovePlan.IntegrationTests/InprovePlan.IntegrationTests.csproj --configuration Release --no-build --logger "trx;LogFileName=integration-tests.trx"'
+                    bat 'dotnet test InprovePlan.IntegrationTests/InprovePlan.IntegrationTests.csproj --configuration Release --no-build --logger "trx;LogFileName=integration-tests.trx"'
                 }
             }
         }
@@ -116,7 +116,7 @@ pipeline {
             steps {
                 dir("${SOLUTION_DIR}") {
                     // 运行 API 接口测试项目，生成 TRX 报告文件。
-                    sh 'dotnet test InprovePlan.ApiTests/InprovePlan.ApiTests.csproj --configuration Release --no-build --logger "trx;LogFileName=api-tests.trx"'
+                    bat 'dotnet test InprovePlan.ApiTests/InprovePlan.ApiTests.csproj --configuration Release --no-build --logger "trx;LogFileName=api-tests.trx"'
                 }
             }
         }
@@ -127,7 +127,7 @@ pipeline {
                 dir("${SOLUTION_DIR}") {
                     // dotnet publish: 将应用程序及其依赖项发布到文件夹，准备部署。
                     // --output artifacts/publish: 指定输出目录。
-                    sh 'dotnet publish ${API_PROJECT} --configuration Release --no-build --output artifacts/publish'
+                    bat 'dotnet publish ${API_PROJECT} --configuration Release --no-build --output artifacts/publish'
                 }
             }
         }
@@ -140,7 +140,7 @@ pipeline {
                     // -t ${IMAGE_NAME}:${BUILD_NUMBER}: 打标签，版本号为 Jenkins 当前的构建号（唯一递增）。
                     // -t ${IMAGE_NAME}:latest: 同时打上 latest 标签，指向最新版本。
                     // 注意：这里假设 SOLUTION_DIR 目录下存在 Dockerfile。
-                    sh 'docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -t ${IMAGE_NAME}:latest .'
+                    bat 'docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -t ${IMAGE_NAME}:latest .'
                 }
             }
         }
