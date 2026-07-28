@@ -26,9 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="D:\Code\InprovePlan\DevelopmentPlan\InprovePlan\InprovePlan.Domain\InprovePlan.Domain.csproj" />
-    <ProjectReference Include="D:\Code\InprovePlan\DevelopmentPlan\InprovePlan\InprovePlan.UserCase\InprovePlan.UserCase.csproj" />
-    <ProjectReference Include="D:\Code\InprovePlan\DevelopmentPlan\InprovePlan\Instructure\Instructure.csproj" />
+    <ProjectReference Include="..\InprovePlan.Domain\InprovePlan.Domain.csproj" />
+    <ProjectReference Include="..\InprovePlan.UserCase\InprovePlan.UserCase.csproj" />
+    <ProjectReference Include="..\Instructure\Instructure.csproj" />
   </ItemGroup>
 
 </Project>

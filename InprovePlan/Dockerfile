@@ -30,7 +30,7 @@ COPY InprovePlan.ApiTests/InprovePlan.ApiTests.csproj InprovePlan.ApiTests/
 # 恢复 NuGet 包依赖
 # 由于上一步只复制了项目文件，这一步会根据 .csproj 下载依赖包
 # 如果 .csproj 没变，这一步会使用缓存，极大加速构建
-RUN dotnet restore InprovePlan.sln
+RUN dotnet restore InprovePlan/InprovePlan.csproj
 
 # 复制剩余的所有源代码文件到工作目录
 # 此时才复制具体的 .cs 代码文件，任何代码改动都会导致这一层缓存失效，
