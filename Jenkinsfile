@@ -1,174 +1,230 @@
-pipeline {
-    // 【代理配置】
-    // agent any: 表示该流水线可以在 Jenkins 主节点或任何标记为可用的从节点上运行。
-    // 如果有特定的环境要求（如需要 JDK 8 或 Docker），通常会改为 agent { label 'docker-node' }
-    agent any
+// 导入Groovy语言内置的JSON处理库中的JsonOutput类，该类提供了将Groovy对象（如Map、List等序列化为标准JSON格式字符串的功能
+import groovy.json.JsonOutput
 
-    // 【全局选项配置】
-    options {
-        // timestamps(): 在控制台输出日志的每一行前添加时间戳，便于排查耗时问题。
-        timestamps()
-        
-        // disableConcurrentBuilds(): 禁止并行执行同一个项目的多次构建。
-        // 这可以防止资源竞争（例如同时修改同一数据库或占用同一端口），确保构建串行化。
-        disableConcurrentBuilds()
-        
-        // buildDiscarder(...): 配置构建记录的保留策略。
-        // logRotator(numToKeepStr: '20'): 只保留最近的 20 次构建记录，旧的会被自动删除以节省磁盘空间。
-        buildDiscarder(logRotator(numToKeepStr: '20'))
+// 定义一个名为notifyGitHubStatus的自定义方法，用于向GitHub API发送POST请求以更新指定Commit的状态信息该方法接收两个参数：state表示状态值（如pending、success、failure），description表示状态的描述文本
+def notifyGitHubStatus(String state, String description) {
+    // 检查Jenkins环境变量中是否存在GIT_COMMIT变量，该变量通常由SCM插件自动注入，代表当前构建对应的Git提交哈希值
+    if (!env.GIT_COMMIT) {
+        // 如果GIT_COMMIT不存在或为空，则在控制台输出提示信息，并直接返回，跳过后续的状态通知逻辑，避免无效请求
+        echo 'GIT_COMMIT is not available, skip GitHub status notification.'
+        return
     }
 
-    // 【环境变量定义】
-    // 这里定义的变量在整个 pipeline 的所有 stage 中都可见。
-    // 使用单引号赋值时，变量值是静态字符串；若需动态引用其他环境变量，需使用双引号和 ${env.VAR} 语法。
+    // 使用withCredentials步骤安全地获取存储在Jenkins凭证管理系统中的GitHub访问令牌，将其绑定到环境变量GITHUB_USER和GITHUB_TOKEN中，确保敏感信息不在日志中明文显示
+    withCredentials([usernamePassword(
+        credentialsId: 'github-token', // 指定在Jenkins中配置的凭证ID
+        usernameVariable: 'GITHUB_USER', // 将凭证中的用户名部分绑定到此环境变量
+        passwordVariable: 'GITHUB_TOKEN' // 将凭证中的密码/令牌部分绑定到此环境变量
+    )]) {
+        // 构建符合GitHub Statuses API要求的JSON请求体 payload
+        // state: 状态值
+        // target_url: 指向Jenkins构建详情页的链接
+        // description: 状态描述，使用take(140)确保长度不超过GitHub限制的140个字符
+        // context: 区分不同CI系统的上下文标识，这里标记为jenkins/InprovePlan-CI
+        def payload = JsonOutput.toJson([
+            state      : state,
+            target_url : env.BUILD_URL,
+            description: description.take(140),
+            context    : 'jenkins/InprovePlan-CI'
+        ])
+
+        // 将生成的JSON字符串写入工作空间下的临时文件github-status.json，指定编码为UTF-8以确保字符集正确
+        writeFile file: 'github-status.json', text: payload, encoding: 'UTF-8'
+
+        // 在Windows环境下执行bat脚本，调用curl命令向GitHub API发送POST请求
+        // -sS: 静默模式但显示错误信息
+        // --fail: 当HTTP错误码大于等于400时使curl命令返回失败状态，从而触发Jenkins构建失败
+        // -X POST: 指定请求方法为POST
+        // -H: 设置请求头，包括认证令牌、接受格式和API版本
+        // --data: 指定从文件中读取请求体数据
+        // URL中包含动态变量%GIT_COMMIT%，指向特定commit的状态接口
+        bat """
+curl.exe -sS --fail -X POST ^
+  -H "Authorization: Bearer %GITHUB_TOKEN%" ^
+  -H "Accept: application/vnd.github+json" ^
+  -H "X-GitHub-Api-Version: 2022-11-28" ^
+  --data "@github-status.json" ^
+  https://api.github.com/repos/JackChey/DevelopmentPlan/statuses/%GIT_COMMIT%
+"""
+    }
+}
+
+// 定义Jenkins声明式流水线的主结构
+pipeline {
+    // 指定流水线可以在任意可用的代理节点上执行
+    agent any
+
+    // 配置流水线的全局选项
+    options {
+        // 在控制台输出中为每一行日志添加时间戳，便于分析各步骤耗时
+        timestamps()
+        // 禁止同一流水线同时运行多个构建实例，防止资源竞争或状态冲突
+        disableConcurrentBuilds()
+        // 配置构建丢弃策略，仅保留最近的20次构建记录，以节省磁盘空间
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        // 跳过Jenkins默认的checkout步骤，改为在stage中手动控制代码检出，以便更灵活地处理状态通知时机
+        skipDefaultCheckout(true)
+    }
+
+    // 定义全局环境变量，这些变量在所有stage中均可访问
     environment {
-        // 禁用 .NET CLI 的遥测数据收集，避免构建日志中出现无关提示或网络请求。
+        // 禁用.NET CLI的遥测数据收集，避免不必要的网络请求和隐私问题
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
-        
-        // 禁用 .NET CLI 启动时的 Logo 显示，保持日志整洁。
+        // 禁用.NET CLI启动时的Logo输出，保持日志整洁
         DOTNET_NOLOGO = '1'
-        
-        // 解决方案所在的目录名称。
+        // 定义解决方案所在的目录名称
         SOLUTION_DIR = 'InprovePlan'
-        
-        // 解决方案文件 (.sln) 的名称。
+        // 定义解决方案文件的名称
         SOLUTION_FILE = 'InprovePlan.sln'
-        
-        // API 主项目的路径（相对于 SOLUTION_DIR）。
+        // 定义API项目的csproj文件路径
         API_PROJECT = 'InprovePlan\\InprovePlan.csproj'
-        
-        // Docker 镜像的名称。
+        // 定义Docker镜像的名称前缀
         IMAGE_NAME = 'inproveplan-api'
     }
 
-    // 【执行阶段】
+    // 定义流水线的各个执行阶段
     stages {
-        
-        // 阶段 1: 代码检出
+        // 第一阶段：Checkout，负责代码检出和初始状态通知
         stage('Checkout') {
             steps {
-                // checkout scm: 从源代码管理系统（如 Git）拉取代码。
-                // 这是大多数流水线的第一步，确保后续操作基于最新代码。
+                // 手动执行SCM checkout，拉取代码
                 checkout scm
-            }
-        }
-
-        // 阶段 2: 环境检查
-        stage('Environment') {
-            steps {
-                // dir("${SOLUTION_DIR}"): 切换工作目录到 'InprovePlan' 文件夹下执行后续命令。
-                dir("${SOLUTION_DIR}") {
-                    // 打印 .NET SDK 的版本信息，用于确认构建环境是否符合预期。
-                    bat 'dotnet --info'
-                    // 打印 Docker 版本信息，确保护宿主机或容器内 Docker 可用。
-                    bat 'docker version'
+                script {
+                    // 在代码检出后，立即调用自定义方法通知GitHub当前构建状态为pending（进行中）
+                    notifyGitHubStatus('pending', 'Jenkins CI is running')
                 }
             }
         }
 
-        // 阶段 3: 还原依赖
+        // 第二阶段：Environment，检查构建环境的Docker可用性
+        stage('Environment') {
+            steps {
+                // 切换到解决方案目录
+                dir("${SOLUTION_DIR}") {
+                    // 打印Docker版本信息，验证Docker是否安装且可用
+                    bat 'docker version'
+                    // 格式化输出Docker服务端版本，进一步确认环境状态
+                    bat 'docker version --format "{{.Server.Version}}"'
+                }
+            }
+        }
+
+        // 第三阶段：Restore，还原NuGet包依赖
         stage('Restore') {
             steps {
+                // 切换到解决方案目录
                 dir("${SOLUTION_DIR}") {
-                    // dotnet restore: 下载并安装项目所需的 NuGet 包依赖。
-                    // ${SOLUTION_FILE} 是之前定义的环境变量，解析为 'InprovePlan.sln'。
+                    // 执行dotnet restore命令，根据解决方案文件还原所有项目的依赖包
                     bat 'dotnet restore %SOLUTION_FILE%'
                 }
             }
         }
 
-        // 阶段 4: 编译构建
+        // 第四阶段：Build，编译项目
         stage('Build') {
             steps {
+                // 切换到解决方案目录
                 dir("${SOLUTION_DIR}") {
-                    // dotnet build: 编译项目。
-                    // --configuration Release: 使用发布模式编译（优化代码，不包含调试符号）。
-                    // --no-restore: 跳过还原步骤，因为上一个阶段已经执行过 restore，加快速度。
+                    // 执行dotnet build命令，以Release配置编译解决方案，--no-restore跳过还原步骤以提高效率
                     bat 'dotnet build %SOLUTION_FILE% --configuration Release --no-restore'
                 }
             }
         }
 
-        // 阶段 5: 单元测试
+        // 第五阶段：Test Unit，运行单元测试
         stage('Test Unit') {
             steps {
+                // 切换到解决方案目录
                 dir("${SOLUTION_DIR}") {
-                    // dotnet test: 运行指定项目的测试。
-                    // --no-build: 直接使用上一阶段编译好的二进制文件，不再重新编译。
-                    // --logger "trx;LogFileName=...": 将测试结果保存为 TRX 格式文件，便于 Jenkins 插件解析生成报告。
+                    // 执行dotnet test命令，专门运行单元测试项目，生成trx格式的测试结果报告
                     bat 'dotnet test InprovePlan.UnitTests\\InprovePlan.UnitTests.csproj --configuration Release --no-build --logger "trx;LogFileName=unit-tests.trx"'
                 }
             }
         }
 
-        // 阶段 6: 集成测试
+        // 第六阶段：Test Integration，运行集成测试
         stage('Test Integration') {
             steps {
+                // 切换到解决方案目录
                 dir("${SOLUTION_DIR}") {
-                    // 运行集成测试项目，同样生成 TRX 报告文件。
+                    // 执行dotnet test命令，专门运行集成测试项目，生成trx格式的测试结果报告
                     bat 'dotnet test InprovePlan.IntegrationTests\\InprovePlan.IntegrationTests.csproj --configuration Release --no-build --logger "trx;LogFileName=integration-tests.trx"'
                 }
             }
         }
 
-        // 阶段 7: API 测试
+        // 第七阶段：Test API，运行API测试
         stage('Test API') {
             steps {
+                // 切换到解决方案目录
                 dir("${SOLUTION_DIR}") {
-                    // 运行 API 接口测试项目，生成 TRX 报告文件。
+                    // 执行dotnet test命令，专门运行API测试项目，生成trx格式的测试结果报告
                     bat 'dotnet test InprovePlan.ApiTests\\InprovePlan.ApiTests.csproj --configuration Release --no-build --logger "trx;LogFileName=api-tests.trx"'
                 }
             }
         }
 
-        // 阶段 8: 发布产物
+        // 第八阶段：Publish，发布应用程序
         stage('Publish') {
             steps {
+                // 切换到解决方案目录
                 dir("${SOLUTION_DIR}") {
-                    // dotnet publish: 将应用程序及其依赖项发布到文件夹，准备部署。
-                    // --output artifacts/publish: 指定输出目录。
+                    // 执行dotnet publish命令，将API项目发布到artifacts/publish目录，准备用于Docker构建
                     bat 'dotnet publish %API_PROJECT% --configuration Release --no-build --output artifacts/publish'
                 }
             }
         }
 
-        // 阶段 9: 构建 Docker 镜像
+        // 第九阶段：Docker Build，构建Docker镜像
         stage('Docker Build') {
             steps {
+                // 切换到解决方案目录
                 dir("${SOLUTION_DIR}") {
-                    // docker build: 根据当前目录下的 Dockerfile 构建镜像。
-                    // -t ${IMAGE_NAME}:${BUILD_NUMBER}: 打标签，版本号为 Jenkins 当前的构建号（唯一递增）。
-                    // -t ${IMAGE_NAME}:latest: 同时打上 latest 标签，指向最新版本。
-                    // 注意：这里假设 SOLUTION_DIR 目录下存在 Dockerfile。
+                    // 执行docker build命令，基于当前目录下的Dockerfile构建镜像，并打上版本号标签和latest标签
                     bat 'docker build -t %IMAGE_NAME%:%BUILD_NUMBER% -t %IMAGE_NAME%:latest .'
                 }
             }
         }
     }
 
-    // 【后置操作】
-    // 无论构建成功与否，都会执行 always 块；根据最终状态执行 success/failure 块。
+    // 定义流水线结束后的后置操作
     post {
+        // 无论构建成功与否，都会执行的操作
         always {
-            // archiveArtifacts: 归档构建产物，使其可以在 Jenkins UI 上下载。
-            
-            // 归档发布后的应用程序文件。
-            // allowEmptyArchive: true 表示如果没找到文件也不报错（防止因路径错误导致构建失败）。
+            // 归档构建产物，方便下载和追溯
             archiveArtifacts artifacts: 'InprovePlan/artifacts/**', allowEmptyArchive: true
-            
-            // 归档所有测试生成的 TRX 结果文件。
-            // 这些文件可以被 Jenkins 的 "MSTest Plugin" 或 "JUnit Plugin" 解析，展示测试趋势图。
-            archiveArtifacts artifacts: 'InprovePlan/**/TestResults/**/*.trx', allowEmptyArchive: true
+            // 归档测试报告文件，便于在Jenkins界面查看测试结果
+            archiveArtifacts artifacts: 'InprovePlan/&zwnj;**/TestResults/**&zwnj;/*.trx', allowEmptyArchive: true
         }
 
+        // 当构建成功时执行的操作
         success {
-            // 当流水线最终状态为 SUCCESS 时执行。
+            script {
+                // 通知GitHub构建状态为success
+                notifyGitHubStatus('success', 'Jenkins CI passed')
+            }
+            // 输出成功日志
             echo 'CI pipeline succeeded.'
         }
 
+        // 当构建失败时执行的操作
         failure {
-            // 当流水线最终状态为 FAILURE 时执行。
+            script {
+                // 通知GitHub构建状态为failure
+                notifyGitHubStatus('failure', 'Jenkins CI failed')
+            }
+            // 输出失败日志
             echo 'CI pipeline failed.'
+        }
+
+        // 当构建不稳定（例如测试部分失败）时执行的操作
+        unstable {
+            script {
+                // 通知GitHub构建状态为failure（GitHub状态API通常只有pending/success/failure/error，unstable通常映射为failure）
+                notifyGitHubStatus('failure', 'Jenkins CI unstable')
+            }
+            // 输出不稳定日志
+            echo 'CI pipeline unstable.'
         }
     }
 }
