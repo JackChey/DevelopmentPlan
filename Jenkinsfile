@@ -78,8 +78,25 @@ pipeline {
         SOLUTION_FILE = 'InprovePlan.sln'
         // 定义API项目的csproj文件路径
         API_PROJECT = 'InprovePlan\\InprovePlan.csproj'
-        // 定义Docker镜像的名称前缀
+
+        // 定义容器镜像仓库的地址。
+        // ghcr.io 是 GitHub Container Registry 的域名，用于存储和分发 Docker 镜像。
+        REGISTRY = 'ghcr.io'
+        // 定义镜像所在的命名空间（Namespace）。
+        // 在 GitHub Container Registry 中，这通常对应于 GitHub 的用户名或组织名称。
+        // 此处 'jackchey' 表示该镜像归属于 jackchey 用户或组织。
+        REGISTRY_NAMESPACE = 'jackchey'
+
+        // 定义具体的镜像名称。
+        // 这是应用程序在仓库中的唯一标识符，通常对应于项目名称或服务名称。
         IMAGE_NAME = 'inproveplan-api'
+
+        // 构建完整的镜像引用路径。
+        // 格式通常为：<仓库地址>/<命名空间>/<镜像名称>
+        // 最终结果为: 'ghcr.io/jackchey/inproveplan-api'
+        // 这个完整路径用于在执行 docker pull、docker push 或 Kubernetes 部署时精确指定要使用的镜像。
+        FULL_IMAGE_NAME = 'ghcr.io/jackchey/inproveplan-api'
+
     }
 
     // 定义流水线的各个执行阶段
@@ -180,11 +197,68 @@ pipeline {
             steps {
                 // 切换到解决方案目录
                 dir("${SOLUTION_DIR}") {
-                    // 执行docker build命令，基于当前目录下的Dockerfile构建镜像，并打上版本号标签和latest标签
-                    bat 'docker build -t %IMAGE_NAME%:%BUILD_NUMBER% -t %IMAGE_NAME%:latest .'
+                    // 基于当前目录构建 Docker 镜像，并一次性为该镜像打上四个不同的标签‌（包括本地简短名称和完整仓库路径的名称，以及对应的版本号和 latest 标签），以便于后续在本地测试或推送到远程仓库。
+                    bat 'docker build -t %IMAGE_NAME%:%BUILD_NUMBER% -t %IMAGE_NAME%:latest -t %FULL_IMAGE_NAME%:%BUILD_NUMBER% -t %FULL_IMAGE_NAME%:latest .'
                 }
             }
         }
+
+        // 第十阶段：Docker Login,构建完成后登录 git 
+        stage('Docker Login') {
+
+            // 【条件执行】仅当当前构建的 Git 分支为 'main' 时，才执行此阶段
+            // 这可以防止在开发分支或功能分支上不必要的登录操作，节省资源并提高安全性
+            when {
+                branch 'main'
+            }
+
+            steps {
+                // 【安全凭证管理】使用 withCredentials 块安全地注入敏感信息
+                // 作用：从 Jenkins 凭证存储中获取 ID 为 'ghcr-token' 的凭证，
+                // 并将其用户名和密码分别映射为环境变量 GHCR_USERNAME 和 GHCR_TOKEN。
+                // 安全性：这些变量仅在当前的代码块 {} 内部有效，且 Jenkins 会自动在日志中屏蔽（Mask）这些变量的真实值，防止密码泄露。
+                withCredentials([usernamePassword(
+                    credentialsId: 'ghcr-token',       // Jenkins 中配置的凭证 ID
+                    usernameVariable: 'GHCR_USERNAME', // 将凭证中的用户名绑定到此环境变量
+                    passwordVariable: 'GHCR_TOKEN'     // 将凭证中的密码/Token 绑定到此环境变量
+                )]) {
+
+                    // 【执行登录命令】在 Windows 环境下执行 Docker 登录
+                    // bat: 表示在 Windows Batch 环境中运行命令（如果是 Linux/Mac 请使用 sh）
+                    // echo %GHCR_TOKEN% | ... : 将 Token 通过管道传递给 docker login，避免在命令行参数中直接明文显示密码
+                    // --password-stdin: Docker 的安全最佳实践，指示 Docker 从标准输入读取密码，而不是通过 -p 参数传递，防止密码出现在进程列表或 shell 历史中
+                    bat 'echo %GHCR_TOKEN% | docker login ghcr.io -u %GHCR_USERNAME% --password-stdin'
+                }
+            }
+        }
+
+        // 第十一阶段：'Docker Push' 负责将构建好的镜像推送到远程仓库
+        stage('Docker Push') {
+            
+            // 【条件执行】仅当当前 Git 分支为 'main' 时，才执行此推送阶段
+            // 目的：防止开发分支（如 feature/*）或测试分支的中间构建产物污染生产环境的镜像仓库，
+            // 确保只有主分支的代码才会被发布为正式版本。
+            when {
+                branch 'main'
+            }
+
+            steps {
+                // 【推送版本标签】推送带有具体构建编号的镜像标签
+                // 格式：<完整镜像路径>:<构建号>
+                // 例如：ghcr.io/jackchey/inproveplan-api:105
+                // 作用：保留历史版本记录，支持精确回滚和审计。每个构建号对应唯一的代码状态。
+                bat 'docker push %FULL_IMAGE_NAME%:%BUILD_NUMBER%'
+
+                // 【推送最新标签】推送标记为 'latest' 的镜像标签
+                // 格式：<完整镜像路径>:latest
+                // 例如：ghcr.io/jackchey/inproveplan-api:latest
+                // 作用：指向当前主分支的最新稳定版本，方便 Kubernetes 或其他部署工具通过 :latest 标签快速拉取最新代码。
+                // 注意：由于前一步已经推送了具体版本，这一步实际上是更新了远程仓库中 'latest' 标签的指向。
+                bat 'docker push %FULL_IMAGE_NAME%:latest'
+            }
+        }
+
+
     }
 
     // 定义流水线结束后的后置操作
@@ -195,6 +269,8 @@ pipeline {
             archiveArtifacts artifacts: 'InprovePlan/artifacts/**', allowEmptyArchive: true
             // 归档测试报告文件，便于在Jenkins界面查看测试结果
             archiveArtifacts artifacts: 'InprovePlan/&zwnj;**/TestResults/**&zwnj;/*.trx', allowEmptyArchive: true
+            // 登出 git
+            bat 'docker logout ghcr.io'
         }
 
         // 当构建成功时执行的操作
