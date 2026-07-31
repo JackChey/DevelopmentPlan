@@ -9,3 +9,5 @@ appsettings.local.backup.json
 
 **/appsettings.Development.json
 **/appsettings.local*.json
+
+deploy/.env

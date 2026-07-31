@@ -10,7 +10,7 @@ def notifyGitHubStatus(String state, String description) {
         return
     }
 
-    // 使用withCredentials步骤安全地获取存储在Jenkins凭证管理系统中的GitHub访问令牌，将其绑定到环境变量GITHUB_USER和GITHUB_TOKEN中，确保敏感信息不在日志中明文显示
+    //  注释 使用withCredentials步骤安全地获取存储在Jenkins凭证管理系统中的GitHub访问令牌，将其绑定到环境变量GITHUB_USER和GITHUB_TOKEN中，确保敏感信息不在日志中明文显示
     withCredentials([usernamePassword(
         credentialsId: 'github-token', // 指定在Jenkins中配置的凭证ID
         usernameVariable: 'GITHUB_USER', // 将凭证中的用户名部分绑定到此环境变量
@@ -39,13 +39,13 @@ def notifyGitHubStatus(String state, String description) {
         // --data: 指定从文件中读取请求体数据
         // URL中包含动态变量%GIT_COMMIT%，指向特定commit的状态接口
         bat """
-curl.exe -sS --fail -X POST ^
-  -H "Authorization: Bearer %GITHUB_TOKEN%" ^
-  -H "Accept: application/vnd.github+json" ^
-  -H "X-GitHub-Api-Version: 2022-11-28" ^
-  --data "@github-status.json" ^
-  https://api.github.com/repos/JackChey/DevelopmentPlan/statuses/%GIT_COMMIT%
-"""
+            curl.exe -sS --fail -X POST ^
+            -H "Authorization: Bearer %GITHUB_TOKEN%" ^
+            -H "Accept: application/vnd.github+json" ^
+            -H "X-GitHub-Api-Version: 2022-11-28" ^
+            --data "@github-status.json" ^
+            https://api.github.com/repos/JackChey/DevelopmentPlan/statuses/%GIT_COMMIT%
+            """
     }
 }
 
@@ -97,6 +97,9 @@ pipeline {
         // 这个完整路径用于在执行 docker pull、docker push 或 Kubernetes 部署时精确指定要使用的镜像。
         FULL_IMAGE_NAME = 'ghcr.io/jackchey/inproveplan-api'
 
+        DEPLOY_DIR = 'D:\\Deploy\\InprovePlan'
+
+        COMPOSE_PROJECT_NAME = 'deploy'
     }
 
     // 定义流水线的各个执行阶段
@@ -258,6 +261,99 @@ pipeline {
             }
         }
 
+        stage('Prepare Deploy Files') {
+            // 【条件判断】：仅当当前构建所在的分支为 'main' 时，才执行此阶段
+            // 如果是在 dev、feature 等其他分支，此阶段将被跳过
+            when {
+                branch 'main'
+            }
+            steps {
+                // 【执行 Windows 批处理命令】
+                bat '''
+                REM 1. 检查部署目录是否存在，若不存在则创建
+                REM %DEPLOY_DIR% 是 Jenkins 环境变量或之前步骤定义的变量
+                if not exist "%DEPLOY_DIR%" mkdir "%DEPLOY_DIR%"
+
+                REM 2. 使用 Robocopy 复制文件
+                REM 源目录: deploy (相对于工作空间的目录)
+                REM 目标目录: %DEPLOY_DIR%
+                REM /E       : 复制子目录，包括空目录
+                REM /XF .env : 排除名为 .env 的文件（通常用于防止覆盖生产环境的敏感配置）
+                robocopy deploy "%DEPLOY_DIR%" /E /XF .env
+
+                REM 3. 处理 Robocopy 的退出码 (ERRORLEVEL)
+                REM Robocopy 的退出码含义：
+                REM 0-7   : 表示成功完成（可能有文件被跳过、额外文件存在等，但不影响核心复制）
+                REM 8-15  : 表示出现错误（如权限不足、文件丢失等）
+                REM 16+   : 表示严重错误
+                REM 以下逻辑：如果退出码小于等于 7，视为成功，强制返回 0 (成功)；否则返回原始错误码导致流水线失败
+                if %ERRORLEVEL% LEQ 7 exit /B 0
+                exit /B %ERRORLEVEL%
+                '''
+        }
+    }
+
+
+    stage('Deploy Compose') {
+        // 【条件判断】：仅当当前分支为 'main' 时执行此部署阶段
+        when {
+            branch 'main'
+        }
+        steps {
+            // 【凭证注入】：从 Jenkins Credentials 中获取 GitHub Container Registry (GHCR) 的账号密码
+            // credentialsId: 'ghcr-token' -> 需在 Jenkins 系统中预先配置好的凭证 ID
+            // usernameVariable: 'GHCR_USERNAME' -> 注入到环境变量的用户名变量名
+            // passwordVariable: 'GHCR_TOKEN' -> 注入到环境变量的密码/Token 变量名
+            withCredentials([usernamePassword(
+                credentialsId: 'ghcr-token',
+                usernameVariable: 'GHCR_USERNAME',
+                passwordVariable: 'GHCR_TOKEN'
+            )]) {
+                // 【执行 Windows 批处理命令】
+                bat '''
+                    REM 1. 登录 GHCR
+                    REM 使用 --password-stdin 避免密码在进程列表或历史中明文显示，提高安全性
+                    REM %GHCR_TOKEN% 和 %GHCR_USERNAME% 由 withCredentials 自动注入
+                    echo %GHCR_TOKEN% | docker login ghcr.io -u %GHCR_USERNAME% --password-stdin
+
+                    REM 2. 切换目录
+                    REM /d 参数允许跨驱动器切换目录（如果 DEPLOY_DIR 在不同盘符）
+                    cd /d "%DEPLOY_DIR%"
+
+                    REM 3. 设置环境变量
+                    REM 定义 API 镜像的完整标签，格式为：镜像名:构建号
+                    set API_IMAGE=%FULL_IMAGE_NAME%:%BUILD_NUMBER%
+
+                    REM 4. 拉取最新镜像
+                    REM 确保本地拥有最新的 inproveplan-api 镜像
+                    docker compose -p %COMPOSE_PROJECT_NAME% pull inproveplan-api
+
+                    REM 5. 启动服务
+                    REM -d 表示后台运行 (detached mode)
+                    REM docker compose 会自动根据 docker-compose.yml 更新并重启容器
+                    docker compose -p %COMPOSE_PROJECT_NAME% up -d
+
+                    REM 6. 验证状态
+                    REM 打印当前运行的容器状态，便于在 Jenkins 控制台日志中快速确认部署结果
+                    docker compose -p %COMPOSE_PROJECT_NAME% ps
+                '''
+            }
+        }
+    }
+
+    stage('Verify Deployment') {
+        // 【条件判断】：仅当当前分支为 'main' 时执行此验证阶段
+        // 确保只有主分支的部署才会进行健康检查
+        when {
+            branch 'main'
+        }
+        steps {
+            // 【执行 Windows 批处理】：调用 PowerShell 进行服务健康检查
+            bat '''
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "$ok=$false; for($i=1; $i -le 30; $i++){ try { $r=Invoke-RestMethod 'http://localhost:18080/api/health/ready'; if($r.success -eq $true){ $ok=$true; break } } catch {}; Start-Sleep -Seconds 2 }; if(-not $ok){ exit 1 }"
+            '''
+        }
+    }
 
     }
 
@@ -268,7 +364,7 @@ pipeline {
             // 归档构建产物，方便下载和追溯
             archiveArtifacts artifacts: 'InprovePlan/artifacts/**', allowEmptyArchive: true
             // 归档测试报告文件，便于在Jenkins界面查看测试结果
-            archiveArtifacts artifacts: 'InprovePlan/&zwnj;**/TestResults/**&zwnj;/*.trx', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'InprovePlan/**/TestResults/**/*.trx', allowEmptyArchive: true
             // 登出 git
             bat 'docker logout ghcr.io'
         }
