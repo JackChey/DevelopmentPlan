@@ -269,24 +269,28 @@ pipeline {
             }
             steps {
                 // 【执行 Windows 批处理命令】
+
+                // 1. 检查部署目录是否存在，若不存在则创建
+                // %DEPLOY_DIR% 是 Jenkins 环境变量或之前步骤定义的变量
+
+                // 2. 使用 Robocopy 复制文件
+                // 源目录: deploy (相对于工作空间的目录)
+                // 目标目录: %DEPLOY_DIR%
+                // /E       : 复制子目录，包括空目录
+                // /XF .env : 排除名为 .env 的文件（通常用于防止覆盖生产环境的敏感配置）
+
+                // 3. 处理 Robocopy 的退出码 (ERRORLEVEL)
+                // Robocopy 的退出码含义：
+                // 0-7   : 表示成功完成（可能有文件被跳过、额外文件存在等，但不影响核心复制）
+                // 8-15  : 表示出现错误（如权限不足、文件丢失等）
+                // 16+   : 表示严重错误
+                // 以下逻辑：如果退出码小于等于 7，视为成功，强制返回 0 (成功)；否则返回原始错误码导致流水线失败
+
                 bat '''
-                REM 1. 检查部署目录是否存在，若不存在则创建
-                REM %DEPLOY_DIR% 是 Jenkins 环境变量或之前步骤定义的变量
                 if not exist "%DEPLOY_DIR%" mkdir "%DEPLOY_DIR%"
 
-                REM 2. 使用 Robocopy 复制文件
-                REM 源目录: deploy (相对于工作空间的目录)
-                REM 目标目录: %DEPLOY_DIR%
-                REM /E       : 复制子目录，包括空目录
-                REM /XF .env : 排除名为 .env 的文件（通常用于防止覆盖生产环境的敏感配置）
                 robocopy deploy "%DEPLOY_DIR%" /E /XF .env
 
-                REM 3. 处理 Robocopy 的退出码 (ERRORLEVEL)
-                REM Robocopy 的退出码含义：
-                REM 0-7   : 表示成功完成（可能有文件被跳过、额外文件存在等，但不影响核心复制）
-                REM 8-15  : 表示出现错误（如权限不足、文件丢失等）
-                REM 16+   : 表示严重错误
-                REM 以下逻辑：如果退出码小于等于 7，视为成功，强制返回 0 (成功)；否则返回原始错误码导致流水线失败
                 if %ERRORLEVEL% LEQ 7 exit /B 0
                 exit /B %ERRORLEVEL%
                 '''
@@ -310,31 +314,38 @@ pipeline {
                 passwordVariable: 'GHCR_TOKEN'
             )]) {
                 // 【执行 Windows 批处理命令】
+
+                // 1. 登录 GHCR
+                // 使用 --password-stdin 避免密码在进程列表或历史中明文显示，提高安全性
+                // %GHCR_TOKEN% 和 %GHCR_USERNAME% 由 withCredentials 自动注入
+
+                // 2. 切换目录
+                // /d 参数允许跨驱动器切换目录（如果 DEPLOY_DIR 在不同盘符）
+
+                // 3. 设置环境变量
+                // 定义 API 镜像的完整标签，格式为：镜像名:构建号
+
+                // 4. 拉取最新镜像
+                // 确保本地拥有最新的 inproveplan-api 镜像
+
+                // 5. 启动服务
+                // -d 表示后台运行 (detached mode)
+                // docker compose 会自动根据 docker-compose.yml 更新并重启容器
+
+                // 6. 验证状态
+                // 打印当前运行的容器状态，便于在 Jenkins 控制台日志中快速确认部署结果
+
                 bat '''
-                    REM 1. 登录 GHCR
-                    REM 使用 --password-stdin 避免密码在进程列表或历史中明文显示，提高安全性
-                    REM %GHCR_TOKEN% 和 %GHCR_USERNAME% 由 withCredentials 自动注入
                     echo %GHCR_TOKEN% | docker login ghcr.io -u %GHCR_USERNAME% --password-stdin
 
-                    REM 2. 切换目录
-                    REM /d 参数允许跨驱动器切换目录（如果 DEPLOY_DIR 在不同盘符）
                     cd /d "%DEPLOY_DIR%"
 
-                    REM 3. 设置环境变量
-                    REM 定义 API 镜像的完整标签，格式为：镜像名:构建号
                     set API_IMAGE=%FULL_IMAGE_NAME%:%BUILD_NUMBER%
 
-                    REM 4. 拉取最新镜像
-                    REM 确保本地拥有最新的 inproveplan-api 镜像
                     docker compose -p %COMPOSE_PROJECT_NAME% pull inproveplan-api
 
-                    REM 5. 启动服务
-                    REM -d 表示后台运行 (detached mode)
-                    REM docker compose 会自动根据 docker-compose.yml 更新并重启容器
                     docker compose -p %COMPOSE_PROJECT_NAME% up -d
 
-                    REM 6. 验证状态
-                    REM 打印当前运行的容器状态，便于在 Jenkins 控制台日志中快速确认部署结果
                     docker compose -p %COMPOSE_PROJECT_NAME% ps
                 '''
             }
